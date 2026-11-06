@@ -32,7 +32,7 @@ function renderExplore(q=''){let found=tracks.filter(t=>(t.title+' '+t.artist+' 
 function renderArtists(){let map={};tracks.forEach(t=>{let a=t.artist||'Unknown artist';map[a]=(map[a]||0)+1});let entries=Object.entries(map);$('#artistGrid').className=entries.length?'artist-grid':'artist-grid empty-state';$('#artistGrid').innerHTML=entries.length?entries.map(([name,count],i)=>`<button class="artist-card" data-artist="${esc(name)}"><div class="artist-avatar" style="background:${palettes[i%palettes.length]}">${esc(name.charAt(0).toUpperCase())}</div><strong>${esc(name)}</strong><small>${count} ${count===1?'track':'tracks'}</small></button>`).join(''):`<div class="empty-icon">◉</div><h3>Your artists will show up here.</h3><p>Add tracks with artist information to discover them here.</p>`}
 function renderPlaylists(){$('#playlistNav').innerHTML=playlists.map(p=>`<button data-openlist="${p.id}">♫ ${esc(p.name)}</button>`).join('')||'<p class="muted small">Your playlists will appear here.</p>';$('#homePlaylists').innerHTML=playlists.map((p,i)=>`<button class="artist-card" data-openlist="${p.id}"><div class="playlist-cover" style="width:100%;height:auto;aspect-ratio:1;border-radius:12px;background:${palettes[i%palettes.length]};font-size:30px">♫</div><strong style="margin-top:10px">${esc(p.name)}</strong><small>${p.ids.length} tracks</small></button>`).join('')||'<div class="playlist-placeholder">Your playlists will live here.</div>'}
 function switchView(v,push=true){$$('.view').forEach(x=>x.classList.remove('active-view'));let el=$('#'+v+'View');if(el)el.classList.add('active-view');$$('.nav-item').forEach(b=>b.classList.toggle('active',b.dataset.view===v));if(push){historyViews=historyViews.slice(0,historyIndex+1);historyViews.push(v);historyIndex++}window.scrollTo({top:0,behavior:'smooth'})}
-function playTrack(id){let idx=tracks.findIndex(t=>t.id===id);if(idx<0)return;current=idx;document.body.classList.add('has-track');audio.pause();audio.src=tracks[idx].url;audio.load();updatePlayer();renderQueue();audio.play().then(syncPlaybackUI).catch(()=>{syncPlaybackUI();toast('This file could not be played. Try another audio file.')})}
+function playTrack(id){let idx=tracks.findIndex(t=>t.id===id);if(idx<0)return;current=idx;document.body.classList.add('has-track');audio.pause();audio.src=tracks[idx].url;audio.load();updatePlayer();renderQueue();audio.play().then(syncPlaybackUI).catch(()=>{syncPlaybackUI();toast(tracks[idx].online?'Audius could not stream this track. Try another full-track result.':'This file could not be played. Try another audio file.')})}
 function updatePlayer(){let t=tracks[current];if(!t)return;setDynamicTheme(t,current);$('#largeCover').innerHTML=coverHTML(t,current);$('#largeCover').style.background=palettes[current%palettes.length];$('#largeTitle').textContent=t.title;$('#largeArtist').textContent=t.artist||'Unknown artist';$('#nowTitle').textContent=t.title;$('#nowArtist').textContent=t.artist||'Unknown artist';$('#miniCover').innerHTML=coverHTML(t,current);$('#miniCover').style.background=palettes[current%palettes.length];$('#likeCurrent').textContent=liked.has(t.id)?'♥':'♡';$('#largeLike').textContent=liked.has(t.id)?'♥':'♡';$('#duration').textContent=fmt(t.duration);$('#largeDuration').textContent=fmt(t.duration);$('#lyricPeekText').textContent=t.lyrics?(t.lyrics.split(/\n/).find(Boolean)||'Open lyrics to sing along'):'Lyrics will appear here when available.';$('#playerBackdrop').style.backgroundImage=t.cover?`linear-gradient(180deg,rgba(5,6,15,.2),rgba(5,6,15,.72)),url("${t.cover}")`:'';$('#playerBackdrop').style.backgroundSize='cover';$('#playerBackdrop').style.backgroundPosition='center';$('#lyricsContent').innerHTML=t.lyrics?`<div class="lyrics-text">${esc(t.lyrics)}</div>`:`<div class="lyrics-symbol">♫</div><h3>Let the words find you.</h3><p>No lyrics added for this track yet.<br>Use the track details option to add lyrics you have permission to use.</p>`}
 function renderQueue(){let rest=tracks.slice(current+1);$('#queueContent').innerHTML=rest.length?rest.map(t=>`<div class="queue-item"><div class="cover">${coverHTML(t)}</div><div><strong>${esc(t.title)}</strong><small>${esc(t.artist||'Unknown artist')}</small></div></div>`).join(''):'<p class="muted small">Nothing else in the queue.</p>'}
 function next(){if(!tracks.length)return;let n=shuffle?Math.floor(Math.random()*tracks.length):(current+1)%tracks.length;playTrack(tracks[n].id)}
@@ -56,7 +56,7 @@ $('#likeCurrent').onclick=()=>{if(tracks[current])toggleLike(tracks[current].id)
 $('#progress').oninput=e=>{if(audio.duration)audio.currentTime=(e.target.value/100)*audio.duration};
 audio.addEventListener('timeupdate',()=>{if(audio.duration){const pct=audio.currentTime/audio.duration*100;$('#progress').value=pct;$('#largeProgress').value=pct;$('#currentTime').textContent=fmt(audio.currentTime);$('#duration').textContent=fmt(audio.duration);$('#largeCurrentTime').textContent=fmt(audio.currentTime);$('#largeDuration').textContent=fmt(audio.duration)}});
 audio.addEventListener('ended',()=>{if(repeat){audio.currentTime=0;audio.play().then(syncPlaybackUI)}else next()});
-audio.addEventListener('play',syncPlaybackUI);audio.addEventListener('pause',syncPlaybackUI);audio.addEventListener('error',()=>{syncPlaybackUI();toast('Audio format could not be loaded by this browser.')});
+audio.addEventListener('play',syncPlaybackUI);audio.addEventListener('pause',syncPlaybackUI);audio.addEventListener('error',()=>{syncPlaybackUI();const t=tracks[current];toast(t?.online?'This Audius stream is unavailable or restricted. Try another track.':'Audio format could not be loaded by this browser.')});
 audio.addEventListener('loadedmetadata',()=>{$('#duration').textContent=fmt(audio.duration);$('#progress').value=0;$('#largeProgress').value=0;$('#currentTime').textContent='0:00'});
 $('#volume').oninput=e=>{audio.volume=e.target.value;$('#largeVolume').value=e.target.value};
 $('#lyricsBtn').onclick=()=>{$('#lyricsPanel').classList.add('open');$('#queuePanel').classList.remove('open')};
@@ -88,50 +88,76 @@ audio.addEventListener('timeupdate',()=>{if(audio.duration){$('#largeProgress').
 renderTracks();audio.volume=.8;
 
 
-/* VYBE 3.2 · Online catalogue discovery (Apple iTunes Search API) */
+/* VYBE 3.4 · Full-track discovery and playback via Audius API */
+const AUDIUS_API='https://api.audius.co/v1';
 let onlineKind='song', onlineTimer=null, onlineRequest=0, onlineCache=[];
-function appleSearch(term, entity){
-  return new Promise((resolve,reject)=>{
-    const cb='vybeAppleCB'+Date.now()+Math.floor(Math.random()*10000);
-    const script=document.createElement('script');
-    const params=new URLSearchParams({term,country:'ke',media:'music',entity,limit:'24',explicit:'No',callback:cb});
-    window[cb]=data=>{delete window[cb];script.remove();resolve(data.results||[])};
-    script.onerror=()=>{delete window[cb];script.remove();reject(new Error('Catalogue search unavailable'))};
-    script.src='https://itunes.apple.com/search?'+params.toString();
-    document.body.appendChild(script);
-  });
+async function audiusGet(path, params={}){
+ const url=new URL(AUDIUS_API+path);
+ Object.entries(params).forEach(([k,v])=>{if(v!==undefined&&v!==null&&v!=='')url.searchParams.set(k,v)});
+ const response=await fetch(url.toString(),{headers:{Accept:'application/json'}});
+ if(!response.ok)throw new Error(`Audius request failed (${response.status})`);
+ const payload=await response.json();
+ if(payload.error)throw new Error(payload.error);
+ return payload.data||[];
 }
 function onlineEmpty(title,copy){$('#onlineResults').innerHTML=`<div class="online-empty"><span>✦</span><strong>${esc(title)}</strong><p>${esc(copy)}</p></div>`}
-function onlineCard(r){
- const cover=(r.artworkUrl100||'').replace('100x100','600x600');
- const id=r.trackId||r.collectionId||r.artistId;
- const title=r.trackName||r.collectionName||r.artistName||'Untitled';
- const subtitle=r.artistName||r.primaryGenreName||'Apple Music catalogue';
- const preview=!!r.previewUrl;
+function audiusArtwork(t){
+ const a=t.artwork||t.profile_picture||{};
+ return a['1000x1000']||a['480x480']||a['150x150']||a._1000x1000||a._480x480||a._150x150||a.url||'';
+}
+function canAudiusStream(t){
+ const v=t.is_streamable??t.isStreamable;
+ return v!==false&&v!=='false'&&t.is_available!==false&&t.isAvailable!==false;
+}
+function onlineCard(t){
+ const cover=audiusArtwork(t);
+ const artist=t.user?.name||t.user?.handle||'Independent artist';
+ const duration=Number(t.duration)||0;
+ const playable=canAudiusStream(t);
  return `<article class="online-card">
    <div class="online-art">${cover?`<img src="${esc(cover)}" alt="">`:`<span>♫</span>`}
-     ${preview?`<button class="online-play" data-online-play="${id}" aria-label="Preview ${esc(title)}">▶</button>`:''}
+     ${playable?`<button class="online-play" data-audius-play="${esc(t.id)}" aria-label="Play full track ${esc(t.title||'Untitled')}">▶</button>`:''}
    </div>
-   <div class="online-card-info"><strong>${esc(title)}</strong><span>${esc(subtitle)}</span>
-   <div class="online-card-actions">${preview?`<button class="online-action" data-online-play="${id}">▶ Preview</button>`:''}<a href="${esc(r.trackViewUrl||r.collectionViewUrl||r.artistViewUrl||'https://music.apple.com/ke/search?term='+encodeURIComponent(title))}" target="_blank" rel="noopener">View in Apple Music ↗</a></div></div>
+   <div class="online-card-info"><strong>${esc(t.title||'Untitled')}</strong><span>${esc(artist)} · ${fmt(duration)}</span>
+   <div class="online-card-actions">${playable?`<button class="online-action" data-audius-play="${esc(t.id)}">▶ Play full track</button>`:'<span class="muted small">Not streamable</span>'}<span class="muted small">Audius</span></div></div>
  </article>`;
 }
+function artistCard(u){
+ const picture=u.profile_picture?.['150x150']||u.profile_picture?.['480x480']||'';
+ return `<article class="online-card"><div class="online-art">${picture?`<img src="${esc(picture)}" alt="">`:'<span>◉</span>'}</div><div class="online-card-info"><strong>${esc(u.name||u.handle||'Artist')}</strong><span>@${esc(u.handle||'artist')}</span><div class="online-card-actions"><button class="online-action" data-audius-artist="${esc(u.id)}">View full tracks</button></div></div></article>`;
+}
 async function searchOnline(term){
- const results=$('#onlineResults'); if(!results)return;
- if(!term.trim()){onlineEmpty('Your next sound is out there.','Type a song, artist or album to explore the catalogue.');$('#onlineTitle').textContent='Search the music catalogue';return}
+ const results=$('#onlineResults');if(!results)return;
+ if(!term.trim()){onlineEmpty('Find your next full-length track.','Search Audius for independent artists and music that can stream inside VYBE.');$('#onlineTitle').textContent='Full-track music discovery';return}
  if(onlineKind==='playlist'){
-   onlineEmpty('Online playlist search needs a connected music service.','You can create and manage your own VYBE playlists now. Online catalogue search currently supports songs, artists and albums.');
-   $('#onlineTitle').textContent='Your playlists';return;
+  onlineEmpty('Playlists are coming later.','Search for a song or artist to play full tracks inside VYBE.');$('#onlineTitle').textContent='Playlists';return;
  }
  const req=++onlineRequest;
- $('#onlineTitle').textContent=`Searching ${onlineKind==='musicArtist'?'artists':onlineKind==='album'?'albums':'songs'} for “${term}”`;
- results.innerHTML='<div class="online-loading"><span class="loading-orb"></span>Finding your sound…</div>';
+ $('#onlineTitle').textContent=`Searching ${onlineKind==='musicArtist'?'artists':onlineKind==='album'?'music':'full tracks'} for “${term}”`;
+ results.innerHTML='<div class="online-loading"><span class="loading-orb"></span>Finding music you can play in full…</div>';
  try{
-   const found=await appleSearch(term,onlineKind);
+  if(onlineKind==='musicArtist'){
+   const found=await audiusGet('/users/search',{query:term,limit:24});
    if(req!==onlineRequest)return;
    onlineCache=found;
-   results.innerHTML=found.length?`<div class="online-grid">${found.map(onlineCard).join('')}</div><p class="catalog-note">Catalogue artwork and previews are supplied by Apple. Song previews are samples; full playback depends on the music provider. <a href="https://www.apple.com/apple-music/" target="_blank" rel="noopener">Explore Apple Music ↗</a></p>`:'<div class="online-empty"><span>⌕</span><strong>No matches found.</strong><p>Try another spelling or search for an artist.</p></div>';
- }catch(e){if(req===onlineRequest)onlineEmpty('Could not reach the catalogue.','Check your connection and try again.')}
+   results.innerHTML=found.length?`<div class="online-grid">${found.map(artistCard).join('')}</div>`:'<div class="online-empty"><span>⌕</span><strong>No artists found.</strong><p>Try another spelling.</p></div>';
+  }else{
+   const found=await audiusGet('/tracks/search',{query:term,limit:24});
+   if(req!==onlineRequest)return;
+   onlineCache=found;
+   const playable=found.filter(t=>t.is_streamable!==false&&t.is_available!==false);
+   results.innerHTML=found.length?`<div class="online-grid">${found.map(onlineCard).join('')}</div><p class="catalog-note">Full-track playback is provided by Audius for tracks the artist has made streamable. Tracks that are unavailable or restricted won't play. Mainstream commercial releases may not be in this catalogue.</p>`:'<div class="online-empty"><span>⌕</span><strong>No tracks found.</strong><p>Try an artist name, song title or another search.</p></div>';
+  }
+ }catch(e){if(req===onlineRequest)onlineEmpty('Could not reach Audius.','Check your internet connection and try again.')}
+}
+async function showAudiusArtistTracks(id){
+ const results=$('#onlineResults');results.innerHTML='<div class="online-loading">Loading artist tracks…</div>';
+ try{
+  const found=await audiusGet(`/users/${encodeURIComponent(id)}/tracks`,{limit:24});
+  onlineCache=found;
+  results.innerHTML=found.length?`<div class="online-grid">${found.map(onlineCard).join('')}</div>`:'<div class="online-empty"><strong>No public tracks available.</strong><p>This artist has no public streamable tracks listed.</p></div>';
+  $('#onlineTitle').textContent='Artist tracks';
+ }catch(e){onlineEmpty('Could not load artist tracks.','Please try again.')}
 }
 function scheduleOnlineSearch(value){clearTimeout(onlineTimer);onlineTimer=setTimeout(()=>searchOnline(value),420)}
 $('#exploreSearch')?.addEventListener('input',e=>scheduleOnlineSearch(e.target.value));
@@ -142,20 +168,24 @@ $('#onlineTabs')?.addEventListener('click',e=>{
  $$('#onlineTabs .online-tab').forEach(x=>x.classList.toggle('active',x===b));
  scheduleOnlineSearch($('#exploreSearch').value||$('#globalSearch').value||'');
 });
-function addOnlinePreview(id){
- const r=onlineCache.find(x=>String(x.trackId||x.collectionId||x.artistId)===String(id));
- if(!r||!r.previewUrl){toast('A preview is not available for this result.');return}
- let t=tracks.find(x=>x.onlineId===r.trackId);
+function addAudiusTrack(id){
+ const r=onlineCache.find(x=>String(x.id)===String(id));
+ if(!r){toast('This track is no longer in the results. Search again.');return}
+ if(!canAudiusStream(r)){toast('This artist has not made this track streamable.');return}
+ let t=tracks.find(x=>x.onlineId===String(r.id));
  if(!t){
-   t={id:'apple-'+r.trackId,onlineId:r.trackId,title:r.trackName||'Unknown track',artist:r.artistName||'Unknown artist',album:r.collectionName||'Apple Music',duration:(r.trackTimeMillis||30000)/1000,url:r.previewUrl,cover:(r.artworkUrl100||'').replace('100x100','600x600'),lyrics:'',online:true};
-   tracks.push(t);renderTracks();
+  const artwork=audiusArtwork(r);
+  t={id:'audius-'+r.id,onlineId:String(r.id),title:r.title||'Untitled',artist:r.user?.name||r.user?.handle||'Independent artist',album:r.album?.name||'Audius',duration:Number(r.duration)||0,url:`${AUDIUS_API}/tracks/${encodeURIComponent(r.id)}/stream?app_name=VYBE`,cover:artwork,lyrics:'',online:true,source:'Audius'};
+  tracks.push(t);renderTracks();
  }
  playTrack(t.id);
- toast('Playing catalogue preview');
+ toast('Loading full track from Audius…');
 }
 document.addEventListener('click',e=>{
- const p=e.target.closest('[data-online-play]');
- if(p){e.preventDefault();addOnlinePreview(p.dataset.onlinePlay)}
+ const p=e.target.closest('[data-audius-play]');
+ if(p){e.preventDefault();addAudiusTrack(p.dataset.audiusPlay);return}
+ const a=e.target.closest('[data-audius-artist]');
+ if(a){e.preventDefault();showAudiusArtistTracks(a.dataset.audiusArtist)}
 });
 /* Keep desktop and touch navigation in sync. */
 $$('.mobile-nav-item').forEach(b=>b.addEventListener('click',()=>{

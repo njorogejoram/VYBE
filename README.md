@@ -8,19 +8,21 @@ A responsive music discovery and local listening web app built with HTML, CSS an
 - New featured home hero and more spacious music cards.
 - Mobile bottom navigation.
 - Animated ambient background and subtle floating glow elements.
-- Online catalogue search for songs, artists and albums using Apple's iTunes Search API.
-- Catalogue song previews when Apple supplies a preview URL, with a nearby Apple Music destination link.
+- Online music discovery through the Audius API.
+- Full-track in-app playback for Audius tracks that are marked streamable by their creators.
+- Artist search with artist-track browsing.
+- No 30-second iTunes preview playback or Apple Music redirect buttons.
 - Keeps local audio file playback and the existing lyrics, queue, favourites and playlist features.
 
 ## Run / deploy
 This is a static site. Open `index.html` in a modern browser or deploy the four files to GitHub Pages.
 
-## Online catalogue limitations
-- Search results and artwork come from Apple's iTunes Search API.
-- Preview clips are short promotional samples, not full-song streaming.
-- Some results do not have preview clips.
-- Online playlist search and full Apple Music playback are not enabled. Apple's full MusicKit / Apple Music API requires developer-token setup and, for personal library features, user authorization. Do not put private signing keys or long-lived secrets in this public static repository.
-- A network connection is required for online search.
+## Online full-track playback
+- VYBE searches the Audius public music catalogue and streams tracks through Audius' documented `/tracks/{track_id}/stream` endpoint.
+- Playback is full-length when the creator has made the track streamable and the stream endpoint is available. Tracks with access restrictions or unavailable streams will not play.
+- Audius is an independent-music catalogue; it does not provide the full mainstream commercial catalogues of Spotify or Apple Music.
+- Audius read-only API access is available without credentials for ordinary requests; an API key can be added later if higher rate limits are needed. Never put private credentials in this public GitHub Pages repository.
+- A network connection is required for online search and streaming.
 
 ## Local music
 Use **Add music** to play audio files from your device. Browser object URLs are temporary, so reselect local files after refreshing the page.
@@ -42,3 +44,6 @@ This release refreshes the expanded Now Playing experience using the supplied fu
 - Artwork-driven ambient background and existing local-file playback.
 
 **Playback provider note:** this release improves the player interface and keeps the current local-file playback engine. Apple Music full-catalogue playback is not activated yet; it requires a MusicKit developer token delivered securely from a backend, listener authorisation, and an eligible Apple Music subscription. Do not put an Apple private signing key or developer token secret in this public GitHub Pages repository.
+
+## Playback source
+VYBE 3.4 uses Audius for online full-track playback. The player uses the track's Audius stream endpoint rather than a short preview URL. The app does not bypass artist stream restrictions or claim that unavailable mainstream tracks can be streamed.
