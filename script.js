@@ -5,7 +5,7 @@ const palettes=artColors.map(c=>`linear-gradient(135deg,${c[0]},${c[1]})`);
 function setDynamicTheme(t,i){
  const fallback=artColors[(Math.max(0,i))%artColors.length];
  if(t&&t.cover){
-  const img=new Image();
+  const img=new Image();img.crossOrigin='anonymous';
   img.onload=()=>{try{
    const c=document.createElement('canvas'),ctx=c.getContext('2d',{willReadFrequently:true});c.width=c.height=32;ctx.drawImage(img,0,0,32,32);
    const d=ctx.getImageData(0,0,32,32).data;let best=null,bestScore=-1;
@@ -76,3 +76,84 @@ $('#largeNext').onclick=()=>$('#nextBtn').click();
 $('#largeProgress').oninput=e=>{if(audio.duration)audio.currentTime=(e.target.value/100)*audio.duration};
 audio.addEventListener('timeupdate',()=>{if(audio.duration)$('#largeProgress').value=audio.currentTime/audio.duration*100});
 renderTracks();audio.volume=.8;
+
+
+/* VYBE 3.2 · Online catalogue discovery (Apple iTunes Search API) */
+let onlineKind='song', onlineTimer=null, onlineRequest=0, onlineCache=[];
+function appleSearch(term, entity){
+  return new Promise((resolve,reject)=>{
+    const cb='vybeAppleCB'+Date.now()+Math.floor(Math.random()*10000);
+    const script=document.createElement('script');
+    const params=new URLSearchParams({term,country:'ke',media:'music',entity,limit:'24',explicit:'No',callback:cb});
+    window[cb]=data=>{delete window[cb];script.remove();resolve(data.results||[])};
+    script.onerror=()=>{delete window[cb];script.remove();reject(new Error('Catalogue search unavailable'))};
+    script.src='https://itunes.apple.com/search?'+params.toString();
+    document.body.appendChild(script);
+  });
+}
+function onlineEmpty(title,copy){$('#onlineResults').innerHTML=`<div class="online-empty"><span>✦</span><strong>${esc(title)}</strong><p>${esc(copy)}</p></div>`}
+function onlineCard(r){
+ const cover=(r.artworkUrl100||'').replace('100x100','600x600');
+ const id=r.trackId||r.collectionId||r.artistId;
+ const title=r.trackName||r.collectionName||r.artistName||'Untitled';
+ const subtitle=r.artistName||r.primaryGenreName||'Apple Music catalogue';
+ const preview=!!r.previewUrl;
+ return `<article class="online-card">
+   <div class="online-art">${cover?`<img src="${esc(cover)}" alt="">`:`<span>♫</span>`}
+     ${preview?`<button class="online-play" data-online-play="${id}" aria-label="Preview ${esc(title)}">▶</button>`:''}
+   </div>
+   <div class="online-card-info"><strong>${esc(title)}</strong><span>${esc(subtitle)}</span>
+   <div class="online-card-actions">${preview?`<button class="online-action" data-online-play="${id}">▶ Preview</button>`:''}<a href="${esc(r.trackViewUrl||r.collectionViewUrl||r.artistViewUrl||'https://music.apple.com/ke/search?term='+encodeURIComponent(title))}" target="_blank" rel="noopener">View in Apple Music ↗</a></div></div>
+ </article>`;
+}
+async function searchOnline(term){
+ const results=$('#onlineResults'); if(!results)return;
+ if(!term.trim()){onlineEmpty('Your next sound is out there.','Type a song, artist or album to explore the catalogue.');$('#onlineTitle').textContent='Search the music catalogue';return}
+ if(onlineKind==='playlist'){
+   onlineEmpty('Online playlist search needs a connected music service.','You can create and manage your own VYBE playlists now. Online catalogue search currently supports songs, artists and albums.');
+   $('#onlineTitle').textContent='Your playlists';return;
+ }
+ const req=++onlineRequest;
+ $('#onlineTitle').textContent=`Searching ${onlineKind==='musicArtist'?'artists':onlineKind==='album'?'albums':'songs'} for “${term}”`;
+ results.innerHTML='<div class="online-loading"><span class="loading-orb"></span>Finding your sound…</div>';
+ try{
+   const found=await appleSearch(term,onlineKind);
+   if(req!==onlineRequest)return;
+   onlineCache=found;
+   results.innerHTML=found.length?`<div class="online-grid">${found.map(onlineCard).join('')}</div><p class="catalog-note">Catalogue artwork and previews are supplied by Apple. Song previews are samples; full playback depends on the music provider. <a href="https://www.apple.com/apple-music/" target="_blank" rel="noopener">Explore Apple Music ↗</a></p>`:'<div class="online-empty"><span>⌕</span><strong>No matches found.</strong><p>Try another spelling or search for an artist.</p></div>';
+ }catch(e){if(req===onlineRequest)onlineEmpty('Could not reach the catalogue.','Check your connection and try again.')}
+}
+function scheduleOnlineSearch(value){clearTimeout(onlineTimer);onlineTimer=setTimeout(()=>searchOnline(value),420)}
+$('#exploreSearch')?.addEventListener('input',e=>scheduleOnlineSearch(e.target.value));
+$('#globalSearch')?.addEventListener('input',e=>scheduleOnlineSearch(e.target.value));
+$('#onlineTabs')?.addEventListener('click',e=>{
+ const b=e.target.closest('[data-kind]');if(!b)return;
+ onlineKind=b.dataset.kind;
+ $$('#onlineTabs .online-tab').forEach(x=>x.classList.toggle('active',x===b));
+ scheduleOnlineSearch($('#exploreSearch').value||$('#globalSearch').value||'');
+});
+function addOnlinePreview(id){
+ const r=onlineCache.find(x=>String(x.trackId||x.collectionId||x.artistId)===String(id));
+ if(!r||!r.previewUrl){toast('A preview is not available for this result.');return}
+ let t=tracks.find(x=>x.onlineId===r.trackId);
+ if(!t){
+   t={id:'apple-'+r.trackId,onlineId:r.trackId,title:r.trackName||'Unknown track',artist:r.artistName||'Unknown artist',album:r.collectionName||'Apple Music',duration:(r.trackTimeMillis||30000)/1000,url:r.previewUrl,cover:(r.artworkUrl100||'').replace('100x100','600x600'),lyrics:'',online:true};
+   tracks.push(t);renderTracks();
+ }
+ playTrack(t.id);
+ toast('Playing catalogue preview');
+}
+document.addEventListener('click',e=>{
+ const p=e.target.closest('[data-online-play]');
+ if(p){e.preventDefault();addOnlinePreview(p.dataset.onlinePlay)}
+});
+/* Keep desktop and touch navigation in sync. */
+$$('.mobile-nav-item').forEach(b=>b.addEventListener('click',()=>{
+ switchView(b.dataset.view);
+ $$('.mobile-nav-item').forEach(x=>x.classList.toggle('active',x===b));
+}));
+const oldSwitchView=switchView;
+switchView=function(v,push=true){
+ oldSwitchView(v,push);
+ $$('.mobile-nav-item').forEach(x=>x.classList.toggle('active',x.dataset.view===v));
+};

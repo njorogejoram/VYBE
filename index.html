@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#101116">
-  <title>VYBE 3.0 — Your sound, your space</title>
+  <title>VYBE 3.2 — Aurora</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -45,10 +45,17 @@
 
       <section id="homeView" class="view active-view home-dashboard">
         <div class="welcome-row home-welcome">
-          <div><p class="eyebrow">YOUR MUSIC, YOUR MOMENT</p><h1>Good evening<span class="welcome-period">.</span></h1><p class="subheading">Pick up where the feeling left off.</p></div>
-          <div class="date-pill"><span class="live-dot"></span> VYBE 3.0</div>
+          <div><p class="eyebrow">YOUR SOUND, YOUR UNIVERSE</p><h1>Feel every <span class="gradient-text">frequency.</span></h1><p class="subheading">Discover something new. Stay for the feeling.</p></div>
+          <div class="date-pill"><span class="live-dot"></span> AURORA EXPERIENCE</div>
         </div>
 
+        <button class="aurora-feature" data-go="explore">
+          <span class="aurora-orb orb-one"></span><span class="aurora-orb orb-two"></span>
+          <span class="feature-kicker">MADE FOR YOUR NEXT OBSESSION</span>
+          <strong>Find your<br><em>next favourite.</em></strong>
+          <span class="feature-cta">Explore music <b>↗</b></span>
+          <span class="feature-note">SONGS · ARTISTS · ALBUMS</span>
+        </button>
         <div class="quick-grid" aria-label="Quick access">
           <button class="quick-tile quick-library" data-go="library"><span class="quick-icon">♫</span><span><b>Your library</b><small>All your music</small></span><span class="quick-arrow">↗</span></button>
           <button class="quick-tile quick-liked" data-filter="liked" data-go="library"><span class="quick-icon">♥</span><span><b>Liked songs</b><small>Your favourites</small></span><span class="quick-arrow">↗</span></button>
@@ -72,8 +79,17 @@
       </section>
 
       <section id="exploreView" class="view">
-        <div class="page-heading"><p class="eyebrow">FIND SOMETHING NEW</p><h1>Explore <span class="gradient-text">sounds.</span></h1><p class="subheading">Search your collection and follow the music wherever it takes you.</p></div>
-        <div class="explore-search"><span>⌕</span><input id="exploreSearch" type="search" placeholder="What are you in the mood for?"></div>
+        <div class="page-heading"><p class="eyebrow">THE WORLD IS YOUR PLAYLIST</p><h1>Explore <span class="gradient-text">everything.</span></h1><p class="subheading">Search songs, artists and albums from the online catalogue.</p></div>
+        <div class="explore-search"><span>⌕</span><input id="exploreSearch" type="search" placeholder="Search songs, artists, albums..."></div>
+        <div class="online-tabs" id="onlineTabs">
+          <button class="online-tab active" data-kind="song">Songs</button>
+          <button class="online-tab" data-kind="musicArtist">Artists</button>
+          <button class="online-tab" data-kind="album">Albums</button>
+          <button class="online-tab" data-kind="playlist">Playlists</button>
+        </div>
+        <div class="online-heading"><div><p class="eyebrow">VYBE ONLINE</p><h2 id="onlineTitle">Search the music catalogue</h2></div><span class="online-status"><i></i> LIVE SEARCH</span></div>
+        <div id="onlineResults" class="online-results"><div class="online-empty"><span>✦</span><strong>Your next sound is out there.</strong><p>Type a song, artist or album to explore the catalogue.</p></div></div>
+        <div class="section-heading"><div><p class="eyebrow">ON THIS DEVICE</p><h2>Your collection</h2></div></div>
         <div class="section-heading"><div><p class="eyebrow">BROWSE BY FEELING</p><h2>Choose a lane</h2></div></div>
         <div class="genre-grid">
           <button data-mood="R&B" class="genre genre-rnb">R&B <span>01</span></button><button data-mood="Hip-Hop" class="genre genre-hip">Hip-hop <span>02</span></button><button data-mood="Afrobeats" class="genre genre-afro">Afrobeats <span>03</span></button><button data-mood="Electronic" class="genre genre-electro">Electronic <span>04</span></button><button data-mood="Indie" class="genre genre-indie">Indie <span>05</span></button><button data-mood="Jazz" class="genre genre-jazz">Jazz <span>06</span></button>
@@ -100,6 +116,12 @@
     </main>
   </div>
 
+  <nav class="mobile-nav glass" aria-label="Mobile navigation">
+    <button class="mobile-nav-item active" data-view="home"><span>⌂</span><small>Home</small></button>
+    <button class="mobile-nav-item" data-view="explore"><span>⌕</span><small>Explore</small></button>
+    <button class="mobile-nav-item" data-view="artists"><span>◉</span><small>Artists</small></button>
+    <button class="mobile-nav-item" data-view="library"><span>▤</span><small>Library</small></button>
+  </nav>
   <div id="playerBar" class="player-bar glass">
     <div class="now-playing">
       <button id="miniCover" class="mini-cover" aria-label="Open full player">♫</button><div class="now-meta"><strong id="nowTitle">Choose a track</strong><span id="nowArtist">Your music will sound right at home.</span></div><button id="likeCurrent" class="like-btn" title="Like track">♡</button>
@@ -115,7 +137,7 @@
   <div id="queuePanel" class="side-panel glass"><div class="panel-head"><div><p class="eyebrow">UP NEXT</p><h2>Your queue</h2></div><button class="close-panel" data-close="queuePanel">×</button></div><div id="queueContent" class="queue-content"></div></div>
   <div id="nowPlaying" class="now-playing-overlay">
     <div class="now-playing-window glass">
-      <div class="now-playing-top"><span class="eyebrow">NOW PLAYING · VYBE 3.0</span><button id="closeNowPlaying" class="close-panel" aria-label="Close player">×</button></div>
+      <div class="now-playing-top"><span class="eyebrow">NOW PLAYING · VYBE 3.2</span><button id="closeNowPlaying" class="close-panel" aria-label="Close player">×</button></div>
       <div class="large-art-wrap"><div id="largeCover" class="large-cover">♫</div></div>
       <div class="large-track-meta"><div><h2 id="largeTitle">Choose a track</h2><p id="largeArtist">Your music will sound right at home.</p></div><span class="equalizer" aria-hidden="true"><i></i><i></i><i></i><i></i></span></div>
       <div class="large-progress"><input id="largeProgress" type="range" min="0" max="100" value="0"></div>
