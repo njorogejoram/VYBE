@@ -43,23 +43,32 @@
         <input id="audioFiles" type="file" accept="audio/*" multiple hidden>
       </header>
 
-      <section id="homeView" class="view active-view">
-        <div class="welcome-row"><div><p class="eyebrow">YOUR PERSONAL SOUNDTRACK</p><h1>Find your <span class="gradient-text">frequency.</span></h1><p class="subheading">A little discovery. A lot of feeling.</p></div><div class="date-pill"><span class="live-dot"></span> YOUR MUSIC SPACE</div></div>
-        <section class="hero-feature">
-          <div class="hero-copy"><span class="feature-tag">✦ THE VYBE EDIT</span><h2>Every mood<br>has a <em>sound.</em></h2><p>Bring your favourite tracks together and make every moment yours.</p><button class="primary-btn" id="heroExplore">Explore your music <span>→</span></button></div>
-          <div class="hero-art"><div class="orbit orbit-one"></div><div class="orbit orbit-two"></div><div class="hero-disc"><div class="disc-center">V.</div></div><div class="floating-note note-one">♫</div><div class="floating-note note-two">♪</div><div class="art-caption">SOUND IN<br><b>FULL COLOUR</b></div></div>
-        </section>
-        <div class="section-heading"><div><p class="eyebrow">MADE FOR YOUR MOMENTS</p><h2>Pick your mood</h2></div></div>
-        <div class="mood-grid">
-          <button class="mood-card mood-night" data-mood="Night Drive"><span>☾</span><b>Night drive</b><small>Late hours, good sounds</small></button>
-          <button class="mood-card mood-focus" data-mood="Deep Focus"><span>◈</span><b>Deep focus</b><small>Find your flow</small></button>
-          <button class="mood-card mood-chill" data-mood="Slow Down"><span>〰</span><b>Slow down</b><small>Take it easy</small></button>
-          <button class="mood-card mood-energy" data-mood="High Energy"><span>✳</span><b>High energy</b><small>Turn it up</small></button>
+      <section id="homeView" class="view active-view home-dashboard">
+        <div class="welcome-row home-welcome">
+          <div><p class="eyebrow">YOUR MUSIC, YOUR MOMENT</p><h1>Good evening<span class="welcome-period">.</span></h1><p class="subheading">Pick up where the feeling left off.</p></div>
+          <div class="date-pill"><span class="live-dot"></span> VYBE 3.0</div>
         </div>
-        <div class="section-heading"><div><p class="eyebrow">BACK IN YOUR ROTATION</p><h2>Recently added</h2></div><button class="text-btn" data-go="library">See your library →</button></div>
-        <div id="recentTracks" class="track-grid empty-state"><div class="empty-icon">♫</div><h3>Your next favourite starts here.</h3><p>Add audio files from your device to build your VYBE library.</p><button class="secondary-btn" id="emptyAdd">＋ Add music</button></div>
-        <div class="section-heading"><div><p class="eyebrow">YOUR COLLECTION</p><h2>Made by you</h2></div></div>
-        <div id="homePlaylists" class="playlist-grid"><div class="playlist-placeholder">Your playlists will live here.</div></div>
+
+        <div class="quick-grid" aria-label="Quick access">
+          <button class="quick-tile quick-library" data-go="library"><span class="quick-icon">♫</span><span><b>Your library</b><small>All your music</small></span><span class="quick-arrow">↗</span></button>
+          <button class="quick-tile quick-liked" data-filter="liked" data-go="library"><span class="quick-icon">♥</span><span><b>Liked songs</b><small>Your favourites</small></span><span class="quick-arrow">↗</span></button>
+          <button class="quick-tile quick-explore" data-go="explore"><span class="quick-icon">⌕</span><span><b>Explore</b><small>Find your next sound</small></span><span class="quick-arrow">↗</span></button>
+          <button class="quick-tile quick-artists" data-go="artists"><span class="quick-icon">◉</span><span><b>Artists</b><small>People behind the music</small></span><span class="quick-arrow">↗</span></button>
+        </div>
+
+        <div class="section-heading home-section-heading"><div><p class="eyebrow">BACK INTO THE FLOW</p><h2>Recently added</h2></div><button class="text-btn" data-go="library">Show all <span>→</span></button></div>
+        <div id="recentTracks" class="track-grid empty-state"><div class="empty-icon">♫</div><h3>Your rotation starts here.</h3><p>Add music from your device and your tracks will appear here.</p><button class="secondary-btn" id="emptyAdd">＋ Add music</button></div>
+
+        <div class="section-heading home-section-heading"><div><p class="eyebrow">SET THE TONE</p><h2>Find your mood</h2></div></div>
+        <div class="mood-grid home-moods">
+          <button class="mood-card mood-night" data-mood="Night Drive"><span>☾</span><b>Night drive</b><small>After-hours energy</small></button>
+          <button class="mood-card mood-focus" data-mood="Deep Focus"><span>◈</span><b>Deep focus</b><small>Stay in your zone</small></button>
+          <button class="mood-card mood-chill" data-mood="Slow Down"><span>〰</span><b>Slow down</b><small>Take a softer pace</small></button>
+          <button class="mood-card mood-energy" data-mood="High Energy"><span>✳</span><b>High energy</b><small>Turn the moment up</small></button>
+        </div>
+
+        <div class="section-heading home-section-heading"><div><p class="eyebrow">MADE BY YOU</p><h2>Your playlists</h2></div><button class="text-btn" id="homeNewPlaylist">＋ Create</button></div>
+        <div id="homePlaylists" class="playlist-grid"><div class="playlist-placeholder">Create a playlist to start collecting your favourite tracks.</div></div>
       </section>
 
       <section id="exploreView" class="view">
