@@ -1,7 +1,111 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#171918"><title>VYBE — Music, your way</title><link rel="stylesheet" href="style.css"></head><body>
-<aside class="sidebar"><a class="brand" href="#"><b>v</b> VYBE</a><p class="label">MENU</p><button class="nav active" data-view="home">⌂　Home</button><button class="nav" data-view="discover">⌕　Discover</button><button class="nav" data-view="library">▤　Your library</button><p class="label">YOUR PLAYLISTS</p><div id="playlists"></div><button id="newPlaylist" class="outline">＋ New playlist</button><div class="side-foot">Your personal music space</div></aside>
-<main><header><div class="mobile-brand"><b>v</b> VYBE</div><label class="search">⌕ <input id="search" placeholder="Search songs or artists..."></label><button id="add" class="outline">＋ Add music</button><input id="files" type="file" accept="audio/*" multiple hidden></header>
-<section id="home" class="view"><p class="eyebrow">YOUR SOUND. YOUR SPACE.</p><h1>Find your <em>VYBE.</em></h1><p class="muted">A home for the music you love.</p><div class="hero"><div><span class="tag">YOUR PERSONAL SOUNDTRACK</span><h2>Every mood<br>has a <em>sound.</em></h2><p>Bring your music together. Build a library that feels like you.</p><button class="primary" id="explore">Explore your library ↗</button></div><div class="record"><div></div></div></div><div class="section-title"><div><p class="eyebrow">PICK UP WHERE YOU LEFT OFF</p><h2>Recently added</h2></div></div><div id="recent" class="cards"></div><div class="moods"><button data-mood="Chill">01 / SLOW DOWN<strong>Chill moments ↗</strong></button><button data-mood="Focus">02 / LOCK IN<strong>Deep focus ↗</strong></button><button data-mood="Energy">03 / TURN UP<strong>Good energy ↗</strong></button></div><div class="hint"><b>♫</b><div><strong>Bring your music to VYBE</strong><p>Add audio files from your device to start listening. Your tracks stay in this browser.</p></div><button class="outline" id="addHint">Add tracks</button></div></section>
-<section id="discover" class="view hidden"><p class="eyebrow">EXPLORE YOUR SOUND</p><h1>Discover</h1><p class="muted">Search your tracks and find something for the moment.</p><div class="filters"><button data-filter="all" class="selected">All music</button><button data-filter="favorites">Favourites</button><button data-filter="recent">Recently added</button></div><div id="discoverList" class="list"></div><div id="discoverEmpty" class="empty">No tracks found. Add music from your device to get started.</div></section>
-<section id="library" class="view hidden"><p class="eyebrow">ALL YOUR MUSIC, TOGETHER</p><h1>Your library</h1><p class="muted">Your collection, favourites and playlists.</p><div class="stats"><div><b id="count">0</b><span>TRACKS</span></div><div><b id="fcount">0</b><span>FAVOURITES</span></div><div><b id="pcount">0</b><span>PLAYLISTS</span></div></div><div class="section-title"><h2>All tracks</h2><button class="outline" id="addLibrary">＋ Add music</button></div><div id="libraryList" class="list"></div><div id="libraryEmpty" class="empty">Your library is waiting. Add audio files to build your collection.</div></section></main>
-<footer class="player"><div class="now"><div class="mini">♫</div><div><strong id="title">Choose a track</strong><small id="artist">Your music will appear here</small></div><button id="like" class="heart">♡</button></div><div class="controls"><div><button id="shuffle">⤨</button><button id="prev">|‹</button><button id="play" class="play">▶</button><button id="next">›|</button><button id="repeat">↻</button></div><div class="seek"><small id="elapsed">0:00</small><input id="progress" type="range" min="0" max="100" value="0"><small id="length">0:00</small></div></div><div class="volume">♫ <input id="volume" type="range" min="0" max="1" step=".01" value=".8"></div></footer><audio id="audio"></audio><div id="toast"></div><script src="script.js"></script></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#101116">
+  <title>VYBE — Your sound, your space</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar glass">
+      <a class="brand" href="#" aria-label="VYBE home"><span class="brand-mark">V</span><span>VYBE<span class="brand-dot">.</span></span></a>
+      <div class="side-label">MENU</div>
+      <nav class="main-nav">
+        <button class="nav-item active" data-view="home"><span>⌂</span> Home</button>
+        <button class="nav-item" data-view="explore"><span>⌕</span> Explore</button>
+        <button class="nav-item" data-view="artists"><span>◉</span> Artists</button>
+        <button class="nav-item" data-view="library"><span>▤</span> Your library</button>
+      </nav>
+      <div class="side-label library-label">YOUR COLLECTION <button id="newPlaylist" class="tiny-plus" title="Create playlist">+</button></div>
+      <div id="playlistNav" class="playlist-nav"><p class="muted small">Your playlists will appear here.</p></div>
+      <div class="sidebar-bottom">
+        <div class="upgrade-card">
+          <span class="upgrade-icon">✦</span>
+          <strong>Your sound. Your space.</strong>
+          <p>Build a library that feels like yours.</p>
+          <button id="addMusicSide" class="outline-btn">Add your music</button>
+        </div>
+        <div class="profile-row"><div class="avatar">J</div><div><strong>Listener</strong><span class="muted small">VYBE member</span></div><span class="profile-more">•••</span></div>
+      </div>
+    </aside>
+
+    <main class="main-area">
+      <header class="topbar">
+        <div class="mobile-brand"><span class="brand-mark">V</span> VYBE<span class="brand-dot">.</span></div>
+        <div class="back-forward"><button aria-label="Back" id="goBack">‹</button><button aria-label="Forward" id="goForward">›</button></div>
+        <label class="search-wrap"><span>⌕</span><input id="globalSearch" type="search" placeholder="Search songs, artists, albums..." autocomplete="off"><kbd>⌘ K</kbd></label>
+        <button class="icon-button upload-top" id="addMusicTop" title="Add music">＋</button>
+        <input id="audioFiles" type="file" accept="audio/*" multiple hidden>
+      </header>
+
+      <section id="homeView" class="view active-view">
+        <div class="welcome-row"><div><p class="eyebrow">YOUR PERSONAL SOUNDTRACK</p><h1>Find your <span class="gradient-text">frequency.</span></h1><p class="subheading">A little discovery. A lot of feeling.</p></div><div class="date-pill"><span class="live-dot"></span> YOUR MUSIC SPACE</div></div>
+        <section class="hero-feature">
+          <div class="hero-copy"><span class="feature-tag">✦ THE VYBE EDIT</span><h2>Every mood<br>has a <em>sound.</em></h2><p>Bring your favourite tracks together and make every moment yours.</p><button class="primary-btn" id="heroExplore">Explore your music <span>→</span></button></div>
+          <div class="hero-art"><div class="orbit orbit-one"></div><div class="orbit orbit-two"></div><div class="hero-disc"><div class="disc-center">V.</div></div><div class="floating-note note-one">♫</div><div class="floating-note note-two">♪</div><div class="art-caption">SOUND IN<br><b>FULL COLOUR</b></div></div>
+        </section>
+        <div class="section-heading"><div><p class="eyebrow">MADE FOR YOUR MOMENTS</p><h2>Pick your mood</h2></div></div>
+        <div class="mood-grid">
+          <button class="mood-card mood-night" data-mood="Night Drive"><span>☾</span><b>Night drive</b><small>Late hours, good sounds</small></button>
+          <button class="mood-card mood-focus" data-mood="Deep Focus"><span>◈</span><b>Deep focus</b><small>Find your flow</small></button>
+          <button class="mood-card mood-chill" data-mood="Slow Down"><span>〰</span><b>Slow down</b><small>Take it easy</small></button>
+          <button class="mood-card mood-energy" data-mood="High Energy"><span>✳</span><b>High energy</b><small>Turn it up</small></button>
+        </div>
+        <div class="section-heading"><div><p class="eyebrow">BACK IN YOUR ROTATION</p><h2>Recently added</h2></div><button class="text-btn" data-go="library">See your library →</button></div>
+        <div id="recentTracks" class="track-grid empty-state"><div class="empty-icon">♫</div><h3>Your next favourite starts here.</h3><p>Add audio files from your device to build your VYBE library.</p><button class="secondary-btn" id="emptyAdd">＋ Add music</button></div>
+        <div class="section-heading"><div><p class="eyebrow">YOUR COLLECTION</p><h2>Made by you</h2></div></div>
+        <div id="homePlaylists" class="playlist-grid"><div class="playlist-placeholder">Your playlists will live here.</div></div>
+      </section>
+
+      <section id="exploreView" class="view">
+        <div class="page-heading"><p class="eyebrow">FIND SOMETHING NEW</p><h1>Explore <span class="gradient-text">sounds.</span></h1><p class="subheading">Search your collection and follow the music wherever it takes you.</p></div>
+        <div class="explore-search"><span>⌕</span><input id="exploreSearch" type="search" placeholder="What are you in the mood for?"></div>
+        <div class="section-heading"><div><p class="eyebrow">BROWSE BY FEELING</p><h2>Choose a lane</h2></div></div>
+        <div class="genre-grid">
+          <button data-mood="R&B" class="genre genre-rnb">R&B <span>01</span></button><button data-mood="Hip-Hop" class="genre genre-hip">Hip-hop <span>02</span></button><button data-mood="Afrobeats" class="genre genre-afro">Afrobeats <span>03</span></button><button data-mood="Electronic" class="genre genre-electro">Electronic <span>04</span></button><button data-mood="Indie" class="genre genre-indie">Indie <span>05</span></button><button data-mood="Jazz" class="genre genre-jazz">Jazz <span>06</span></button>
+        </div>
+        <div class="section-heading"><div><p class="eyebrow">IN YOUR LIBRARY</p><h2>Search results</h2></div></div>
+        <div id="exploreResults" class="track-list"><p class="muted">Add music, then search by song, artist or album.</p></div>
+      </section>
+
+      <section id="artistsView" class="view">
+        <div class="page-heading"><p class="eyebrow">THE PEOPLE BEHIND THE SOUND</p><h1>Artist <span class="gradient-text">spotlight.</span></h1><p class="subheading">Find the artists in your collection and explore their tracks.</p></div>
+        <div id="artistGrid" class="artist-grid empty-state"><div class="empty-icon">◉</div><h3>Your artists will show up here.</h3><p>Add tracks with artist information to discover them here.</p></div>
+      </section>
+
+      <section id="libraryView" class="view">
+        <div class="page-heading"><p class="eyebrow">ALL YOUR FAVOURITES, TOGETHER</p><h1>Your <span class="gradient-text">library.</span></h1><p class="subheading">The music you bring. The memories you make.</p></div>
+        <div class="library-tabs"><button class="tab active" data-filter="all">All tracks</button><button class="tab" data-filter="liked">Liked songs ♥</button></div>
+        <div id="libraryTracks" class="track-list"><p class="muted">Your library is waiting for its first track.</p></div>
+      </section>
+
+      <section id="playlistView" class="view">
+        <button class="back-link" id="playlistBack">← Your library</button>
+        <div id="playlistDetail"></div>
+      </section>
+    </main>
+  </div>
+
+  <div id="playerBar" class="player-bar glass">
+    <div class="now-playing">
+      <div id="miniCover" class="mini-cover">♫</div><div class="now-meta"><strong id="nowTitle">Choose a track</strong><span id="nowArtist">Your music will sound right at home.</span></div><button id="likeCurrent" class="like-btn" title="Like track">♡</button>
+    </div>
+    <div class="player-controls">
+      <div class="control-buttons"><button id="shuffleBtn" class="sub-control" title="Shuffle">⤨</button><button id="prevBtn" title="Previous">|‹</button><button id="playBtn" class="play-main" title="Play">▶</button><button id="nextBtn" title="Next">›|</button><button id="repeatBtn" class="sub-control" title="Repeat">↻</button></div>
+      <div class="progress-row"><span id="currentTime">0:00</span><input id="progress" type="range" min="0" max="100" value="0"><span id="duration">0:00</span></div>
+    </div>
+    <div class="player-extra"><button id="lyricsBtn" class="lyrics-toggle">▤ <span>Lyrics</span></button><button id="queueBtn" class="sub-control" title="Queue">☷</button><span class="volume-icon">◖</span><input id="volume" type="range" min="0" max="1" step="0.01" value="0.8"></div>
+  </div>
+
+  <div id="lyricsPanel" class="side-panel glass"><div class="panel-head"><div><p class="eyebrow">SING ALONG</p><h2>Lyrics</h2></div><button class="close-panel" data-close="lyricsPanel">×</button></div><div id="lyricsContent" class="lyrics-content"><div class="lyrics-symbol">♫</div><h3>Let the words find you.</h3><p>Add lyrics for your own tracks using the track details.</p></div></div>
+  <div id="queuePanel" class="side-panel glass"><div class="panel-head"><div><p class="eyebrow">UP NEXT</p><h2>Your queue</h2></div><button class="close-panel" data-close="queuePanel">×</button></div><div id="queueContent" class="queue-content"></div></div>
+  <div id="toast" class="toast"></div>
+  <audio id="audio"></audio>
+  <script src="script.js"></script>
+</body>
+</html>
