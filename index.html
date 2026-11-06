@@ -136,13 +136,46 @@
   <div id="lyricsPanel" class="side-panel glass"><div class="panel-head"><div><p class="eyebrow">SING ALONG</p><h2>Lyrics</h2></div><button class="close-panel" data-close="lyricsPanel">×</button></div><div id="lyricsContent" class="lyrics-content"><div class="lyrics-symbol">♫</div><h3>Let the words find you.</h3><p>Add lyrics for your own tracks using the track details.</p></div></div>
   <div id="queuePanel" class="side-panel glass"><div class="panel-head"><div><p class="eyebrow">UP NEXT</p><h2>Your queue</h2></div><button class="close-panel" data-close="queuePanel">×</button></div><div id="queueContent" class="queue-content"></div></div>
   <div id="nowPlaying" class="now-playing-overlay">
+    <div class="player-backdrop" id="playerBackdrop" aria-hidden="true"></div>
     <div class="now-playing-window glass">
-      <div class="now-playing-top"><span class="eyebrow">NOW PLAYING · VYBE 3.2</span><button id="closeNowPlaying" class="close-panel" aria-label="Close player">×</button></div>
-      <div class="large-art-wrap"><div id="largeCover" class="large-cover">♫</div></div>
-      <div class="large-track-meta"><div><h2 id="largeTitle">Choose a track</h2><p id="largeArtist">Your music will sound right at home.</p></div><span class="equalizer" aria-hidden="true"><i></i><i></i><i></i><i></i></span></div>
-      <div class="large-progress"><input id="largeProgress" type="range" min="0" max="100" value="0"></div>
-      <div class="large-controls"><button id="largePrev" aria-label="Previous track">|‹</button><button id="largePlay" class="large-play" aria-label="Play or pause">▶</button><button id="largeNext" aria-label="Next track">›|</button></div>
-      <p class="large-hint">Your music, in full colour.</p>
+      <div class="player-topline">
+        <span class="player-source">PLAYING IN <b>VYBE</b></span>
+        <button id="closeNowPlaying" class="player-close" aria-label="Close player">⌄</button>
+      </div>
+      <div class="player-art-stage">
+        <div id="largeCover" class="large-cover">♫</div>
+      </div>
+      <div class="large-track-meta">
+        <div class="player-track-copy">
+          <span class="player-overline">NOW PLAYING</span>
+          <h2 id="largeTitle">Choose a track</h2>
+          <p id="largeArtist">Your music will sound right at home.</p>
+        </div>
+        <button id="largeLike" class="player-round-action" aria-label="Like track">♡</button>
+        <button id="largeMore" class="player-round-action" aria-label="Track details">•••</button>
+      </div>
+      <button id="lyricPeek" class="lyric-peek" title="Open lyrics">
+        <span id="lyricPeekText">Lyrics will appear here when available.</span><b>›</b>
+      </button>
+      <div class="large-progress">
+        <input id="largeProgress" type="range" min="0" max="100" value="0" aria-label="Track progress">
+        <div class="player-time-row"><span id="largeCurrentTime">0:00</span><span id="largeDuration">0:00</span></div>
+      </div>
+      <div class="large-controls">
+        <button id="largeShuffle" class="player-secondary" aria-label="Shuffle">⤨</button>
+        <button id="largePrev" aria-label="Previous track">|◀</button>
+        <button id="largePlay" class="large-play" aria-label="Play or pause">▶</button>
+        <button id="largeNext" aria-label="Next track">▶|</button>
+        <button id="largeRepeat" class="player-secondary" aria-label="Repeat">↻</button>
+      </div>
+      <div class="player-volume">
+        <span>◖</span><input id="largeVolume" type="range" min="0" max="1" step="0.01" value="0.8" aria-label="Volume"><span>◗</span>
+      </div>
+      <div class="player-utility-row">
+        <button id="largeLyrics" aria-label="Lyrics"><span>▤</span><small>Lyrics</small></button>
+        <button id="largeQueue" aria-label="Queue"><span>☷</span><small>Queue</small></button>
+        <button id="largeDevice" aria-label="Playback source"><span>◉</span><small>On this device</small></button>
+      </div>
     </div>
   </div>
   <div id="toast" class="toast"></div>

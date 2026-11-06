@@ -19,7 +19,7 @@ function setDynamicTheme(t,i){
  }else applyTheme(fallback);
 }
 function applyTheme(pair){const root=document.documentElement;root.style.setProperty('--accent',pair[0]);root.style.setProperty('--accent-deep',pair[1]);root.style.setProperty('--ambient',pair[0]+'45');document.querySelector('meta[name="theme-color"]')?.setAttribute('content',pair[1]);document.body.classList.add('theme-shift')}
-function syncPlaybackUI(){const playing=!audio.paused&&!audio.ended;$('#playBtn').textContent=playing?'Ⅱ':'▶';$('#largePlay').textContent=playing?'Ⅱ':'▶';document.body.classList.toggle('is-playing',playing)}
+function syncPlaybackUI(){const playing=!audio.paused&&!audio.ended;$('#playBtn').textContent=playing?'Ⅱ':'▶';$('#largePlay').textContent=playing?'Ⅱ':'▶';document.body.classList.toggle('is-playing',playing);$('#largePlay').setAttribute('aria-label',playing?'Pause':'Play')}
 
 function toast(msg){let t=$('#toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2100)}
 function fmt(s){if(!isFinite(s))return'0:00';return Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0')}
@@ -33,7 +33,7 @@ function renderArtists(){let map={};tracks.forEach(t=>{let a=t.artist||'Unknown 
 function renderPlaylists(){$('#playlistNav').innerHTML=playlists.map(p=>`<button data-openlist="${p.id}">♫ ${esc(p.name)}</button>`).join('')||'<p class="muted small">Your playlists will appear here.</p>';$('#homePlaylists').innerHTML=playlists.map((p,i)=>`<button class="artist-card" data-openlist="${p.id}"><div class="playlist-cover" style="width:100%;height:auto;aspect-ratio:1;border-radius:12px;background:${palettes[i%palettes.length]};font-size:30px">♫</div><strong style="margin-top:10px">${esc(p.name)}</strong><small>${p.ids.length} tracks</small></button>`).join('')||'<div class="playlist-placeholder">Your playlists will live here.</div>'}
 function switchView(v,push=true){$$('.view').forEach(x=>x.classList.remove('active-view'));let el=$('#'+v+'View');if(el)el.classList.add('active-view');$$('.nav-item').forEach(b=>b.classList.toggle('active',b.dataset.view===v));if(push){historyViews=historyViews.slice(0,historyIndex+1);historyViews.push(v);historyIndex++}window.scrollTo({top:0,behavior:'smooth'})}
 function playTrack(id){let idx=tracks.findIndex(t=>t.id===id);if(idx<0)return;current=idx;document.body.classList.add('has-track');audio.pause();audio.src=tracks[idx].url;audio.load();updatePlayer();renderQueue();audio.play().then(syncPlaybackUI).catch(()=>{syncPlaybackUI();toast('This file could not be played. Try another audio file.')})}
-function updatePlayer(){let t=tracks[current];if(!t)return;setDynamicTheme(t,current);$('#largeCover').innerHTML=coverHTML(t,current);$('#largeCover').style.background=palettes[current%palettes.length];$('#largeTitle').textContent=t.title;$('#largeArtist').textContent=t.artist||'Unknown artist';$('#nowTitle').textContent=t.title;$('#nowArtist').textContent=t.artist||'Unknown artist';$('#miniCover').innerHTML=coverHTML(t,current);$('#miniCover').style.background=palettes[current%palettes.length];$('#likeCurrent').textContent=liked.has(t.id)?'♥':'♡';$('#duration').textContent=fmt(t.duration);$('#lyricsContent').innerHTML=t.lyrics?`<div class="lyrics-text">${esc(t.lyrics)}</div>`:`<div class="lyrics-symbol">♫</div><h3>Let the words find you.</h3><p>No lyrics added for this track yet.<br>Use the track details option to add lyrics you have permission to use.</p>`}
+function updatePlayer(){let t=tracks[current];if(!t)return;setDynamicTheme(t,current);$('#largeCover').innerHTML=coverHTML(t,current);$('#largeCover').style.background=palettes[current%palettes.length];$('#largeTitle').textContent=t.title;$('#largeArtist').textContent=t.artist||'Unknown artist';$('#nowTitle').textContent=t.title;$('#nowArtist').textContent=t.artist||'Unknown artist';$('#miniCover').innerHTML=coverHTML(t,current);$('#miniCover').style.background=palettes[current%palettes.length];$('#likeCurrent').textContent=liked.has(t.id)?'♥':'♡';$('#largeLike').textContent=liked.has(t.id)?'♥':'♡';$('#duration').textContent=fmt(t.duration);$('#largeDuration').textContent=fmt(t.duration);$('#lyricPeekText').textContent=t.lyrics?(t.lyrics.split(/\n/).find(Boolean)||'Open lyrics to sing along'):'Lyrics will appear here when available.';$('#playerBackdrop').style.backgroundImage=t.cover?`linear-gradient(180deg,rgba(5,6,15,.2),rgba(5,6,15,.72)),url("${t.cover}")`:'';$('#playerBackdrop').style.backgroundSize='cover';$('#playerBackdrop').style.backgroundPosition='center';$('#lyricsContent').innerHTML=t.lyrics?`<div class="lyrics-text">${esc(t.lyrics)}</div>`:`<div class="lyrics-symbol">♫</div><h3>Let the words find you.</h3><p>No lyrics added for this track yet.<br>Use the track details option to add lyrics you have permission to use.</p>`}
 function renderQueue(){let rest=tracks.slice(current+1);$('#queueContent').innerHTML=rest.length?rest.map(t=>`<div class="queue-item"><div class="cover">${coverHTML(t)}</div><div><strong>${esc(t.title)}</strong><small>${esc(t.artist||'Unknown artist')}</small></div></div>`).join(''):'<p class="muted small">Nothing else in the queue.</p>'}
 function next(){if(!tracks.length)return;let n=shuffle?Math.floor(Math.random()*tracks.length):(current+1)%tracks.length;playTrack(tracks[n].id)}
 function toggleLike(id){if(liked.has(id))liked.delete(id);else liked.add(id);renderTracks();updatePlayer()}
@@ -54,11 +54,11 @@ $('#shuffleBtn').onclick=()=>{$('#shuffleBtn').classList.toggle('active');shuffl
 $('#repeatBtn').onclick=()=>{$('#repeatBtn').classList.toggle('active');repeat=!repeat;toast(repeat?'Repeat on':'Repeat off')};
 $('#likeCurrent').onclick=()=>{if(tracks[current])toggleLike(tracks[current].id)};
 $('#progress').oninput=e=>{if(audio.duration)audio.currentTime=(e.target.value/100)*audio.duration};
-audio.addEventListener('timeupdate',()=>{if(audio.duration){const pct=audio.currentTime/audio.duration*100;$('#progress').value=pct;$('#largeProgress').value=pct;$('#currentTime').textContent=fmt(audio.currentTime);$('#duration').textContent=fmt(audio.duration)}});
+audio.addEventListener('timeupdate',()=>{if(audio.duration){const pct=audio.currentTime/audio.duration*100;$('#progress').value=pct;$('#largeProgress').value=pct;$('#currentTime').textContent=fmt(audio.currentTime);$('#duration').textContent=fmt(audio.duration);$('#largeCurrentTime').textContent=fmt(audio.currentTime);$('#largeDuration').textContent=fmt(audio.duration)}});
 audio.addEventListener('ended',()=>{if(repeat){audio.currentTime=0;audio.play().then(syncPlaybackUI)}else next()});
 audio.addEventListener('play',syncPlaybackUI);audio.addEventListener('pause',syncPlaybackUI);audio.addEventListener('error',()=>{syncPlaybackUI();toast('Audio format could not be loaded by this browser.')});
 audio.addEventListener('loadedmetadata',()=>{$('#duration').textContent=fmt(audio.duration);$('#progress').value=0;$('#largeProgress').value=0;$('#currentTime').textContent='0:00'});
-$('#volume').oninput=e=>audio.volume=e.target.value;
+$('#volume').oninput=e=>{audio.volume=e.target.value;$('#largeVolume').value=e.target.value};
 $('#lyricsBtn').onclick=()=>{$('#lyricsPanel').classList.add('open');$('#queuePanel').classList.remove('open')};
 $('#queueBtn').onclick=()=>{$('#queuePanel').classList.add('open');$('#lyricsPanel').classList.remove('open')};
 $$('[data-close]').forEach(b=>b.onclick=()=>$('#'+b.dataset.close).classList.remove('open'));
@@ -69,12 +69,22 @@ $('#artistGrid').addEventListener('click',()=>{});
 
 $('#miniCover').title='Open full player';
 $('#miniCover').addEventListener('click',()=>$('#nowPlaying').classList.add('open'));
+$('#nowTitle').addEventListener('click',()=>$('#nowPlaying').classList.add('open'));
 $('#closeNowPlaying').onclick=()=>$('#nowPlaying').classList.remove('open');
 $('#largePlay').onclick=()=>$('#playBtn').click();
 $('#largePrev').onclick=()=>$('#prevBtn').click();
 $('#largeNext').onclick=()=>$('#nextBtn').click();
 $('#largeProgress').oninput=e=>{if(audio.duration)audio.currentTime=(e.target.value/100)*audio.duration};
-audio.addEventListener('timeupdate',()=>{if(audio.duration)$('#largeProgress').value=audio.currentTime/audio.duration*100});
+$('#largeVolume').oninput=e=>{audio.volume=Number(e.target.value);$('#volume').value=e.target.value};
+$('#largeLike').onclick=()=>{if(tracks[current])toggleLike(tracks[current].id)};
+$('#largeLyrics').onclick=()=>$('#lyricsBtn').click();
+$('#lyricPeek').onclick=()=>$('#lyricsBtn').click();
+$('#largeQueue').onclick=()=>$('#queueBtn').click();
+$('#largeShuffle').onclick=()=>$('#shuffleBtn').click();
+$('#largeRepeat').onclick=()=>$('#repeatBtn').click();
+$('#largeMore').onclick=()=>{if(tracks[current]){let t=tracks[current];toast(`${t.title} · ${t.artist||'Unknown artist'}`)}};
+$('#largeDevice').onclick=()=>toast('Playing on this device');
+audio.addEventListener('timeupdate',()=>{if(audio.duration){$('#largeProgress').value=audio.currentTime/audio.duration*100;$('#largeCurrentTime').textContent=fmt(audio.currentTime);$('#largeDuration').textContent=fmt(audio.duration)}});
 renderTracks();audio.volume=.8;
 
 

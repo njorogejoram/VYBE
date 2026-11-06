@@ -30,3 +30,15 @@ Use **Add music** to play audio files from your device. Browser object URLs are 
 - `style.css` — Aurora glass UI and responsive styling
 - `script.js` — playback, library, and online catalogue search
 - `README.md` — project notes
+
+
+## VYBE 3.3 — Glass Player Refresh
+
+This release refreshes the expanded Now Playing experience using the supplied full-screen player reference:
+- Full-screen mobile player with blurred artwork ambience.
+- Large album art, title/artist details, lyric preview and seek timeline.
+- Glass controls for play/pause, previous/next, shuffle and repeat.
+- Volume slider, lyrics and queue shortcuts.
+- Artwork-driven ambient background and existing local-file playback.
+
+**Playback provider note:** this release improves the player interface and keeps the current local-file playback engine. Apple Music full-catalogue playback is not activated yet; it requires a MusicKit developer token delivered securely from a backend, listener authorisation, and an eligible Apple Music subscription. Do not put an Apple private signing key or developer token secret in this public GitHub Pages repository.
