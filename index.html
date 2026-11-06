@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#101116">
-  <title>VYBE 3.2 — Aurora</title>
+  <title>VYBE 4.0 — YouTube Edition</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -38,7 +38,7 @@
       <header class="topbar">
         <div class="mobile-brand"><span class="brand-mark">V</span> VYBE<span class="brand-dot">.</span></div>
         <div class="back-forward"><button aria-label="Back" id="goBack">‹</button><button aria-label="Forward" id="goForward">›</button></div>
-        <label class="search-wrap"><span>⌕</span><input id="globalSearch" type="search" placeholder="Search full tracks, artists, albums..." autocomplete="off"><kbd>⌘ K</kbd></label>
+        <label class="search-wrap"><span>⌕</span><input id="globalSearch" type="search" placeholder="Search songs, artists..." autocomplete="off"><kbd>⌘ K</kbd></label>
         <button class="icon-button upload-top" id="addMusicTop" title="Add music">＋</button>
         <input id="audioFiles" type="file" accept="audio/*" multiple hidden>
       </header>
@@ -63,6 +63,9 @@
           <button class="quick-tile quick-artists" data-go="artists"><span class="quick-icon">◉</span><span><b>Artists</b><small>People behind the music</small></span><span class="quick-arrow">↗</span></button>
         </div>
 
+        <div class="section-heading home-section-heading"><div><p class="eyebrow">THE BIG NAMES</p><h2>Popular artists</h2></div><button class="text-btn" data-go="artists">Explore artists <span>→</span></button></div>
+        <div id="featuredArtistGrid" class="featured-artist-grid"></div>
+
         <div class="section-heading home-section-heading"><div><p class="eyebrow">BACK INTO THE FLOW</p><h2>Recently added</h2></div><button class="text-btn" data-go="library">Show all <span>→</span></button></div>
         <div id="recentTracks" class="track-grid empty-state"><div class="empty-icon">♫</div><h3>Your rotation starts here.</h3><p>Add music from your device and your tracks will appear here.</p><button class="secondary-btn" id="emptyAdd">＋ Add music</button></div>
 
@@ -79,15 +82,19 @@
       </section>
 
       <section id="exploreView" class="view">
-        <div class="page-heading"><p class="eyebrow">THE WORLD IS YOUR PLAYLIST</p><h1>Explore <span class="gradient-text">everything.</span></h1><p class="subheading">Discover independent music and play available full tracks inside VYBE.</p></div>
-        <div class="explore-search"><span>⌕</span><input id="exploreSearch" type="search" placeholder="Search full tracks, artists, albums..."></div>
+        <div class="page-heading"><p class="eyebrow">THE WORLD IS YOUR PLAYLIST</p><h1>Explore <span class="gradient-text">everything.</span></h1><p class="subheading">Search songs, artists and albums from the online catalogue.</p></div>
+        <div class="explore-search"><span>⌕</span><input id="exploreSearch" type="search" placeholder="Search songs, artists..."></div>
         <div class="online-tabs" id="onlineTabs">
           <button class="online-tab active" data-kind="song">Songs</button>
           <button class="online-tab" data-kind="musicArtist">Artists</button>
           <button class="online-tab" data-kind="album">Albums</button>
           <button class="online-tab" data-kind="playlist">Playlists</button>
         </div>
-        <div class="online-heading"><div><p class="eyebrow">VYBE ONLINE</p><h2 id="onlineTitle">Search the music catalogue</h2></div><span class="online-status"><i></i> LIVE SEARCH</span></div>
+        <section class="youtube-key-panel" id="youtubeKeyPanel" aria-label="Connect YouTube search">
+          <div><strong>Connect YouTube search</strong><p>Create a YouTube Data API v3 key in Google Cloud Console, then paste it here. Your key is saved only in this browser.</p><small id="youtubeKeyStatus">YouTube is not connected yet.</small></div>
+          <div class="youtube-key-controls"><input id="youtubeApiKey" type="password" placeholder="Paste YouTube API key" autocomplete="off" aria-label="YouTube API key"><button class="primary-btn" id="saveYoutubeKey" type="button">Save key</button></div>
+        </section>
+        <div class="online-heading"><div><p class="eyebrow">VYBE ONLINE</p><h2 id="onlineTitle">Search YouTube music</h2></div><span class="online-status"><i></i> LIVE SEARCH</span></div>
         <div id="onlineResults" class="online-results"><div class="online-empty"><span>✦</span><strong>Your next sound is out there.</strong><p>Type a song, artist or album to explore the catalogue.</p></div></div>
         <div class="section-heading"><div><p class="eyebrow">ON THIS DEVICE</p><h2>Your collection</h2></div></div>
         <div class="section-heading"><div><p class="eyebrow">BROWSE BY FEELING</p><h2>Choose a lane</h2></div></div>
@@ -99,7 +106,7 @@
       </section>
 
       <section id="artistsView" class="view">
-        <div class="page-heading"><p class="eyebrow">THE PEOPLE BEHIND THE SOUND</p><h1>Artist <span class="gradient-text">spotlight.</span></h1><p class="subheading">Find the artists in your collection and explore their tracks.</p></div>
+        <div class="page-heading"><p class="eyebrow">THE PEOPLE BEHIND THE SOUND</p><h1>Artist <span class="gradient-text">spotlight.</span></h1><p class="subheading">Popular picks first, then the artists in your collection.</p></div>
         <div id="artistGrid" class="artist-grid empty-state"><div class="empty-icon">◉</div><h3>Your artists will show up here.</h3><p>Add tracks with artist information to discover them here.</p></div>
       </section>
 
@@ -144,6 +151,7 @@
       </div>
       <div class="player-art-stage">
         <div id="largeCover" class="large-cover">♫</div>
+        <div id="youtubeFrameWrap" class="youtube-frame-wrap" hidden></div>
       </div>
       <div class="large-track-meta">
         <div class="player-track-copy">

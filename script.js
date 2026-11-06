@@ -19,7 +19,7 @@ function setDynamicTheme(t,i){
  }else applyTheme(fallback);
 }
 function applyTheme(pair){const root=document.documentElement;root.style.setProperty('--accent',pair[0]);root.style.setProperty('--accent-deep',pair[1]);root.style.setProperty('--ambient',pair[0]+'45');document.querySelector('meta[name="theme-color"]')?.setAttribute('content',pair[1]);document.body.classList.add('theme-shift')}
-function syncPlaybackUI(){const playing=!audio.paused&&!audio.ended;$('#playBtn').textContent=playing?'Ⅱ':'▶';$('#largePlay').textContent=playing?'Ⅱ':'▶';document.body.classList.toggle('is-playing',playing);$('#largePlay').setAttribute('aria-label',playing?'Pause':'Play')}
+function syncPlaybackUI(){const playing=youtubeActive?false:(!audio.paused&&!audio.ended);$('#playBtn').textContent=playing?'Ⅱ':'▶';$('#largePlay').textContent=playing?'Ⅱ':'▶';document.body.classList.toggle('is-playing',playing);$('#largePlay').setAttribute('aria-label',playing?'Pause':'Play')}
 
 function toast(msg){let t=$('#toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2100)}
 function fmt(s){if(!isFinite(s))return'0:00';return Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0')}
@@ -32,8 +32,8 @@ function renderExplore(q=''){let found=tracks.filter(t=>(t.title+' '+t.artist+' 
 function renderArtists(){let map={};tracks.forEach(t=>{let a=t.artist||'Unknown artist';map[a]=(map[a]||0)+1});let entries=Object.entries(map);$('#artistGrid').className=entries.length?'artist-grid':'artist-grid empty-state';$('#artistGrid').innerHTML=entries.length?entries.map(([name,count],i)=>`<button class="artist-card" data-artist="${esc(name)}"><div class="artist-avatar" style="background:${palettes[i%palettes.length]}">${esc(name.charAt(0).toUpperCase())}</div><strong>${esc(name)}</strong><small>${count} ${count===1?'track':'tracks'}</small></button>`).join(''):`<div class="empty-icon">◉</div><h3>Your artists will show up here.</h3><p>Add tracks with artist information to discover them here.</p>`}
 function renderPlaylists(){$('#playlistNav').innerHTML=playlists.map(p=>`<button data-openlist="${p.id}">♫ ${esc(p.name)}</button>`).join('')||'<p class="muted small">Your playlists will appear here.</p>';$('#homePlaylists').innerHTML=playlists.map((p,i)=>`<button class="artist-card" data-openlist="${p.id}"><div class="playlist-cover" style="width:100%;height:auto;aspect-ratio:1;border-radius:12px;background:${palettes[i%palettes.length]};font-size:30px">♫</div><strong style="margin-top:10px">${esc(p.name)}</strong><small>${p.ids.length} tracks</small></button>`).join('')||'<div class="playlist-placeholder">Your playlists will live here.</div>'}
 function switchView(v,push=true){$$('.view').forEach(x=>x.classList.remove('active-view'));let el=$('#'+v+'View');if(el)el.classList.add('active-view');$$('.nav-item').forEach(b=>b.classList.toggle('active',b.dataset.view===v));if(push){historyViews=historyViews.slice(0,historyIndex+1);historyViews.push(v);historyIndex++}window.scrollTo({top:0,behavior:'smooth'})}
-function playTrack(id){let idx=tracks.findIndex(t=>t.id===id);if(idx<0)return;current=idx;document.body.classList.add('has-track');audio.pause();audio.src=tracks[idx].url;audio.load();updatePlayer();renderQueue();audio.play().then(syncPlaybackUI).catch(()=>{syncPlaybackUI();toast(tracks[idx].online?'Audius could not stream this track. Try another full-track result.':'This file could not be played. Try another audio file.')})}
-function updatePlayer(){let t=tracks[current];if(!t)return;setDynamicTheme(t,current);$('#largeCover').innerHTML=coverHTML(t,current);$('#largeCover').style.background=palettes[current%palettes.length];$('#largeTitle').textContent=t.title;$('#largeArtist').textContent=t.artist||'Unknown artist';$('#nowTitle').textContent=t.title;$('#nowArtist').textContent=t.artist||'Unknown artist';$('#miniCover').innerHTML=coverHTML(t,current);$('#miniCover').style.background=palettes[current%palettes.length];$('#likeCurrent').textContent=liked.has(t.id)?'♥':'♡';$('#largeLike').textContent=liked.has(t.id)?'♥':'♡';$('#duration').textContent=fmt(t.duration);$('#largeDuration').textContent=fmt(t.duration);$('#lyricPeekText').textContent=t.lyrics?(t.lyrics.split(/\n/).find(Boolean)||'Open lyrics to sing along'):'Lyrics will appear here when available.';$('#playerBackdrop').style.backgroundImage=t.cover?`linear-gradient(180deg,rgba(5,6,15,.2),rgba(5,6,15,.72)),url("${t.cover}")`:'';$('#playerBackdrop').style.backgroundSize='cover';$('#playerBackdrop').style.backgroundPosition='center';$('#lyricsContent').innerHTML=t.lyrics?`<div class="lyrics-text">${esc(t.lyrics)}</div>`:`<div class="lyrics-symbol">♫</div><h3>Let the words find you.</h3><p>No lyrics added for this track yet.<br>Use the track details option to add lyrics you have permission to use.</p>`}
+function playTrack(id){let idx=tracks.findIndex(t=>t.id===id);if(idx<0)return;current=idx;document.body.classList.add('has-track');audio.pause();const t=tracks[idx];youtubeActive=!!(t.youtubeId||t.youtubePlaylistId);if(youtubeActive){audio.removeAttribute('src');audio.load();}else{const wrap=$('#youtubeFrameWrap');if(wrap){wrap.innerHTML='';wrap.hidden=true}$('#largeCover').style.display='';document.body.classList.remove('youtube-mode');audio.src=t.url;audio.load()}updatePlayer();renderQueue();if(!youtubeActive)audio.play().then(syncPlaybackUI).catch(()=>{syncPlaybackUI();toast('This local audio file could not be played.')});else syncPlaybackUI()}
+function updatePlayer(){let t=tracks[current];if(!t)return;setDynamicTheme(t,current);const ytWrap=$('#youtubeFrameWrap');if(t.youtubeId||t.youtubePlaylistId){const src=t.youtubeId?`https://www.youtube.com/embed/${encodeURIComponent(t.youtubeId)}?autoplay=1&playsinline=1&rel=0`:`https://www.youtube.com/embed/videoseries?list=${encodeURIComponent(t.youtubePlaylistId)}&autoplay=1&playsinline=1&rel=0`;ytWrap.innerHTML=`<iframe title="YouTube player" src="${src}" allow="autoplay; encrypted-media; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`;ytWrap.hidden=false;$('#largeCover').style.display='none';document.body.classList.add('youtube-mode')}else{ytWrap.innerHTML='';ytWrap.hidden=true;$('#largeCover').style.display='';document.body.classList.remove('youtube-mode')}$('#largeCover').innerHTML=coverHTML(t,current);$('#largeCover').style.background=palettes[current%palettes.length];$('#largeTitle').textContent=t.title;$('#largeArtist').textContent=t.artist||'Unknown artist';$('#nowTitle').textContent=t.title;$('#nowArtist').textContent=t.artist||'Unknown artist';$('#miniCover').innerHTML=coverHTML(t,current);$('#miniCover').style.background=palettes[current%palettes.length];$('#likeCurrent').textContent=liked.has(t.id)?'♥':'♡';$('#largeLike').textContent=liked.has(t.id)?'♥':'♡';$('#duration').textContent=fmt(t.duration);$('#largeDuration').textContent=fmt(t.duration);$('#lyricPeekText').textContent=t.lyrics?(t.lyrics.split(/\n/).find(Boolean)||'Open lyrics to sing along'):'Lyrics will appear here when available.';$('#playerBackdrop').style.backgroundImage=t.cover?`linear-gradient(180deg,rgba(5,6,15,.2),rgba(5,6,15,.72)),url("${t.cover}")`:'';$('#playerBackdrop').style.backgroundSize='cover';$('#playerBackdrop').style.backgroundPosition='center';$('#lyricsContent').innerHTML=t.lyrics?`<div class="lyrics-text">${esc(t.lyrics)}</div>`:`<div class="lyrics-symbol">♫</div><h3>Let the words find you.</h3><p>No lyrics added for this track yet.<br>Use the track details option to add lyrics you have permission to use.</p>`}
 function renderQueue(){let rest=tracks.slice(current+1);$('#queueContent').innerHTML=rest.length?rest.map(t=>`<div class="queue-item"><div class="cover">${coverHTML(t)}</div><div><strong>${esc(t.title)}</strong><small>${esc(t.artist||'Unknown artist')}</small></div></div>`).join(''):'<p class="muted small">Nothing else in the queue.</p>'}
 function next(){if(!tracks.length)return;let n=shuffle?Math.floor(Math.random()*tracks.length):(current+1)%tracks.length;playTrack(tracks[n].id)}
 function toggleLike(id){if(liked.has(id))liked.delete(id);else liked.add(id);renderTracks();updatePlayer()}
@@ -56,7 +56,7 @@ $('#likeCurrent').onclick=()=>{if(tracks[current])toggleLike(tracks[current].id)
 $('#progress').oninput=e=>{if(audio.duration)audio.currentTime=(e.target.value/100)*audio.duration};
 audio.addEventListener('timeupdate',()=>{if(audio.duration){const pct=audio.currentTime/audio.duration*100;$('#progress').value=pct;$('#largeProgress').value=pct;$('#currentTime').textContent=fmt(audio.currentTime);$('#duration').textContent=fmt(audio.duration);$('#largeCurrentTime').textContent=fmt(audio.currentTime);$('#largeDuration').textContent=fmt(audio.duration)}});
 audio.addEventListener('ended',()=>{if(repeat){audio.currentTime=0;audio.play().then(syncPlaybackUI)}else next()});
-audio.addEventListener('play',syncPlaybackUI);audio.addEventListener('pause',syncPlaybackUI);audio.addEventListener('error',()=>{syncPlaybackUI();const t=tracks[current];toast(t?.online?'This Audius stream is unavailable or restricted. Try another track.':'Audio format could not be loaded by this browser.')});
+audio.addEventListener('play',syncPlaybackUI);audio.addEventListener('pause',syncPlaybackUI);audio.addEventListener('error',()=>{syncPlaybackUI();toast('Audio format could not be loaded by this browser.')});
 audio.addEventListener('loadedmetadata',()=>{$('#duration').textContent=fmt(audio.duration);$('#progress').value=0;$('#largeProgress').value=0;$('#currentTime').textContent='0:00'});
 $('#volume').oninput=e=>{audio.volume=e.target.value;$('#largeVolume').value=e.target.value};
 $('#lyricsBtn').onclick=()=>{$('#lyricsPanel').classList.add('open');$('#queuePanel').classList.remove('open')};
@@ -88,105 +88,135 @@ audio.addEventListener('timeupdate',()=>{if(audio.duration){$('#largeProgress').
 renderTracks();audio.volume=.8;
 
 
-/* VYBE 3.4 · Full-track discovery and playback via Audius API */
-const AUDIUS_API='https://api.audius.co/v1';
-let onlineKind='song', onlineTimer=null, onlineRequest=0, onlineCache=[];
-async function audiusGet(path, params={}){
- const url=new URL(AUDIUS_API+path);
- Object.entries(params).forEach(([k,v])=>{if(v!==undefined&&v!==null&&v!=='')url.searchParams.set(k,v)});
- const response=await fetch(url.toString(),{headers:{Accept:'application/json'}});
- if(!response.ok)throw new Error(`Audius request failed (${response.status})`);
- const payload=await response.json();
- if(payload.error)throw new Error(payload.error);
- return payload.data||[];
+/* VYBE 4.0 · YouTube Data API search + official embedded player.
+   Search results are real YouTube videos/channels/playlists. Playback remains inside
+   YouTube's embedded player; VYBE never extracts or proxies audio streams. */
+let onlineKind='song', onlineRequest=0, onlineCache=[];
+const FEATURED_ARTISTS=[
+ {name:'Burna Boy',tag:'Afrobeats',tone:'afro'},
+ {name:'Taylor Swift',tag:'Pop',tone:'pop'},
+ {name:'The Weeknd',tag:'R&B / Pop',tone:'rnb'},
+ {name:'Drake',tag:'Hip-hop',tone:'hip'},
+ {name:'Ayra Starr',tag:'Afropop',tone:'afro'},
+ {name:'Billie Eilish',tag:'Alternative',tone:'alt'},
+ {name:'Sauti Sol',tag:'Kenyan',tone:'kenya'},
+ {name:'Tyla',tag:'Amapiano / Pop',tone:'afro'},
+ {name:'Tems',tag:'Afrobeats / R&B',tone:'rnb'},
+ {name:'Rihanna',tag:'Pop / R&B',tone:'pop'},
+ {name:'Bien',tag:'Kenyan',tone:'kenya'},
+ {name:'Chris Brown',tag:'R&B',tone:'rnb'}
+];
+let youtubeActive=false;
+function youtubeKey(){return localStorage.getItem('vybe_youtube_api_key')||''}
+function renderFeaturedArtists(){
+ const cards=FEATURED_ARTISTS.map((a,i)=>`<button class="featured-artist-card tone-${a.tone}" data-featured-artist="${esc(a.name)}"><span class="featured-artist-index">${String(i+1).padStart(2,'0')}</span><span class="featured-artist-avatar">${esc(a.name.split(/\s+/).map(x=>x[0]).join('').slice(0,2).toUpperCase())}</span><strong>${esc(a.name)}</strong><small>${esc(a.tag)}</small></button>`).join('');
+ const home=$('#featuredArtistGrid');if(home)home.innerHTML=cards;
+ const grid=$('#artistGrid');if(grid){const localCards=tracks.map(t=>t.artist).filter((v,i,a)=>v&&a.indexOf(v)===i).map((name,i)=>`<button class="artist-card" data-featured-artist="${esc(name)}"><div class="artist-avatar" style="background:${palettes[i%palettes.length]}">${esc(name.charAt(0).toUpperCase())}</div><strong>${esc(name)}</strong><small>In your collection</small></button>`).join('');grid.innerHTML=cards+localCards;}
+ if(grid)grid.className='artist-grid';
 }
 function onlineEmpty(title,copy){$('#onlineResults').innerHTML=`<div class="online-empty"><span>✦</span><strong>${esc(title)}</strong><p>${esc(copy)}</p></div>`}
-function audiusArtwork(t){
- const a=t.artwork||t.profile_picture||{};
- return a['1000x1000']||a['480x480']||a['150x150']||a._1000x1000||a._480x480||a._150x150||a.url||'';
-}
-function canAudiusStream(t){
- const v=t.is_streamable??t.isStreamable;
- return v!==false&&v!=='false'&&t.is_available!==false&&t.isAvailable!==false;
-}
-function onlineCard(t){
- const cover=audiusArtwork(t);
- const artist=t.user?.name||t.user?.handle||'Independent artist';
- const duration=Number(t.duration)||0;
- const playable=canAudiusStream(t);
+function youtubeCard(v){
+ const id=v.id?.videoId||v.id;
+ const s=v.snippet||{};
+ const thumb=s.thumbnails?.high?.url||s.thumbnails?.medium?.url||s.thumbnails?.default?.url||'';
+ const title=s.title||'Untitled video';
+ const channel=s.channelTitle||'YouTube creator';
  return `<article class="online-card">
-   <div class="online-art">${cover?`<img src="${esc(cover)}" alt="">`:`<span>♫</span>`}
-     ${playable?`<button class="online-play" data-audius-play="${esc(t.id)}" aria-label="Play full track ${esc(t.title||'Untitled')}">▶</button>`:''}
-   </div>
-   <div class="online-card-info"><strong>${esc(t.title||'Untitled')}</strong><span>${esc(artist)} · ${fmt(duration)}</span>
-   <div class="online-card-actions">${playable?`<button class="online-action" data-audius-play="${esc(t.id)}">▶ Play full track</button>`:'<span class="muted small">Not streamable</span>'}<span class="muted small">Audius</span></div></div>
+   <div class="online-art">${thumb?`<img src="${esc(thumb)}" alt="">`:`<span>♫</span>`}<button class="online-play" data-youtube-play="${esc(id)}" aria-label="Play ${esc(title)}">▶</button></div>
+   <div class="online-card-info"><strong title="${esc(title)}">${esc(title)}</strong><span>${esc(channel)}</span>
+   <div class="online-card-actions"><button class="online-action" data-youtube-play="${esc(id)}">▶ Play on YouTube</button><a href="https://www.youtube.com/watch?v=${encodeURIComponent(id)}" target="_blank" rel="noopener">Open ↗</a></div></div>
  </article>`;
 }
-function artistCard(u){
- const picture=u.profile_picture?.['150x150']||u.profile_picture?.['480x480']||'';
- return `<article class="online-card"><div class="online-art">${picture?`<img src="${esc(picture)}" alt="">`:'<span>◉</span>'}</div><div class="online-card-info"><strong>${esc(u.name||u.handle||'Artist')}</strong><span>@${esc(u.handle||'artist')}</span><div class="online-card-actions"><button class="online-action" data-audius-artist="${esc(u.id)}">View full tracks</button></div></div></article>`;
+function youtubeChannelCard(v){
+ const s=v.snippet||{}, id=v.id?.channelId||v.id, title=s.title||'YouTube channel';
+ const thumb=s.thumbnails?.high?.url||s.thumbnails?.medium?.url||s.thumbnails?.default?.url||'';
+ return `<article class="online-card"><div class="online-art">${thumb?`<img src="${esc(thumb)}" alt="">`:`<span>◉</span>`}</div><div class="online-card-info"><strong>${esc(title)}</strong><span>Artist / channel</span><div class="online-card-actions"><button class="online-action" data-channel-search="${esc(id)}" data-channel-name="${esc(title)}">Find tracks</button><a href="https://www.youtube.com/channel/${encodeURIComponent(id)}" target="_blank" rel="noopener">Channel ↗</a></div></div></article>`;
 }
-async function searchOnline(term){
+function youtubePlaylistCard(v){
+ const s=v.snippet||{}, id=v.id?.playlistId||v.id, title=s.title||'Untitled playlist';
+ const thumb=s.thumbnails?.high?.url||s.thumbnails?.medium?.url||s.thumbnails?.default?.url||'';
+ return `<article class="online-card"><div class="online-art">${thumb?`<img src="${esc(thumb)}" alt="">`:`<span>♫</span>`}<button class="online-play" data-youtube-list="${esc(id)}" aria-label="Play ${esc(title)}">▶</button></div><div class="online-card-info"><strong>${esc(title)}</strong><span>${esc(s.channelTitle||'YouTube playlist')}</span><div class="online-card-actions"><button class="online-action" data-youtube-list="${esc(id)}">▶ Play playlist</button></div></div></article>`;
+}
+async function youtubeApi(path,params){
+ const key=youtubeKey();if(!key)throw new Error('Add your YouTube API key above to search.');
+ const url=new URL('https://www.googleapis.com/youtube/v3/'+path);
+ Object.entries({...params,key}).forEach(([k,v])=>url.searchParams.set(k,v));
+ const response=await fetch(url.toString());
+ const data=await response.json();
+ if(!response.ok)throw new Error(data.error?.message||'YouTube search failed. Check your API key and quota.');
+ return data;
+}
+async function searchOnline(term,channelId=''){
  const results=$('#onlineResults');if(!results)return;
- if(!term.trim()){onlineEmpty('Find your next full-length track.','Search Audius for independent artists and music that can stream inside VYBE.');$('#onlineTitle').textContent='Full-track music discovery';return}
- if(onlineKind==='playlist'){
-  onlineEmpty('Playlists are coming later.','Search for a song or artist to play full tracks inside VYBE.');$('#onlineTitle').textContent='Playlists';return;
- }
+ const q=term.trim();if(!q){onlineEmpty('Search for a song, artist or playlist.','Enter a specific title or artist name, then press Search.');return}
+ if(!youtubeKey()){onlineEmpty('Connect YouTube first.','Paste your YouTube Data API key in the box above, save it, then search again.');$('#youtubeKeyPanel').classList.add('needs-key');return}
  const req=++onlineRequest;
- $('#onlineTitle').textContent=`Searching ${onlineKind==='musicArtist'?'artists':onlineKind==='album'?'music':'full tracks'} for “${term}”`;
- results.innerHTML='<div class="online-loading"><span class="loading-orb"></span>Finding music you can play in full…</div>';
+ $('#onlineTitle').textContent=`Searching ${onlineKind==='artist'?'artists':onlineKind==='playlist'?'playlists':'songs'} for “${q}”`;
+ results.innerHTML='<div class="online-loading"><span class="loading-orb"></span>Searching YouTube…</div>';
  try{
-  if(onlineKind==='musicArtist'){
-   const found=await audiusGet('/users/search',{query:term,limit:24});
+   let params={part:'snippet',q,type:onlineKind==='artist'?'channel':onlineKind==='playlist'?'playlist':'video',maxResults:'20',regionCode:'KE',relevanceLanguage:'en',safeSearch:'moderate'};
+   if(onlineKind==='song'){params.videoEmbeddable='true';params.videoSyndicated='true';params.videoCategoryId='10';if(channelId)params.channelId=channelId;}
+   const data=await youtubeApi('search',params);
    if(req!==onlineRequest)return;
-   onlineCache=found;
-   results.innerHTML=found.length?`<div class="online-grid">${found.map(artistCard).join('')}</div>`:'<div class="online-empty"><span>⌕</span><strong>No artists found.</strong><p>Try another spelling.</p></div>';
-  }else{
-   const found=await audiusGet('/tracks/search',{query:term,limit:24});
-   if(req!==onlineRequest)return;
-   onlineCache=found;
-   const playable=found.filter(t=>t.is_streamable!==false&&t.is_available!==false);
-   results.innerHTML=found.length?`<div class="online-grid">${found.map(onlineCard).join('')}</div><p class="catalog-note">Full-track playback is provided by Audius for tracks the artist has made streamable. Tracks that are unavailable or restricted won't play. Mainstream commercial releases may not be in this catalogue.</p>`:'<div class="online-empty"><span>⌕</span><strong>No tracks found.</strong><p>Try an artist name, song title or another search.</p></div>';
-  }
- }catch(e){if(req===onlineRequest)onlineEmpty('Could not reach Audius.','Check your internet connection and try again.')}
+   onlineCache=data.items||[];
+   if(onlineKind==='song'){
+     const ids=onlineCache.map(v=>v.id?.videoId).filter(Boolean);
+     if(!ids.length){onlineEmpty('No matching videos found.','Try the exact song title and artist, or a different spelling.');return}
+     const detail=await youtubeApi('videos',{part:'contentDetails,status',id:ids.join(',')});
+     if(req!==onlineRequest)return;
+     const meta=new Map((detail.items||[]).map(v=>[v.id,v]));
+     const playable=onlineCache.filter(v=>{const d=meta.get(v.id?.videoId);return d&&d.status?.embeddable!==false&&parseIsoDuration(d.contentDetails?.duration)>=90;});
+     onlineCache=playable;
+     results.innerHTML=playable.length?`<div class="online-grid">${playable.map(youtubeCard).join('')}</div><p class="catalog-note">Results are real YouTube uploads. Short clips under 90 seconds and videos marked non-embeddable are filtered out. Select the exact version you want.</p>`:'<div class="online-empty"><span>⌕</span><strong>No playable full-length matches.</strong><p>Try a different spelling or search the artist name. Some uploads cannot be embedded.</p></div>';
+   }else if(onlineKind==='artist'){
+     results.innerHTML=onlineCache.length?`<div class="online-grid">${onlineCache.map(youtubeChannelCard).join('')}</div>`:'<div class="online-empty"><span>⌕</span><strong>No matching artist channels.</strong><p>Try the full artist name.</p></div>';
+   }else{
+     results.innerHTML=onlineCache.length?`<div class="online-grid">${onlineCache.map(youtubePlaylistCard).join('')}</div>`:'<div class="online-empty"><span>⌕</span><strong>No playlists found.</strong><p>Try another search.</p></div>';
+   }
+ }catch(e){if(req===onlineRequest)onlineEmpty('YouTube search error',e.message||'Check your connection, API key restrictions and daily quota.')}
 }
-async function showAudiusArtistTracks(id){
- const results=$('#onlineResults');results.innerHTML='<div class="online-loading">Loading artist tracks…</div>';
- try{
-  const found=await audiusGet(`/users/${encodeURIComponent(id)}/tracks`,{limit:24});
-  onlineCache=found;
-  results.innerHTML=found.length?`<div class="online-grid">${found.map(onlineCard).join('')}</div>`:'<div class="online-empty"><strong>No public tracks available.</strong><p>This artist has no public streamable tracks listed.</p></div>';
-  $('#onlineTitle').textContent='Artist tracks';
- }catch(e){onlineEmpty('Could not load artist tracks.','Please try again.')}
+function parseIsoDuration(value=''){
+ const m=value.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);return m?(+(m[1]||0)*3600+ +(m[2]||0)*60+ +(m[3]||0)):0;
 }
-function scheduleOnlineSearch(value){clearTimeout(onlineTimer);onlineTimer=setTimeout(()=>searchOnline(value),420)}
-$('#exploreSearch')?.addEventListener('input',e=>scheduleOnlineSearch(e.target.value));
-$('#globalSearch')?.addEventListener('input',e=>scheduleOnlineSearch(e.target.value));
+function saveYoutubeKey(){
+ const input=$('#youtubeApiKey'),key=input.value.trim();
+ if(!key){toast('Paste your YouTube API key first.');return}
+ localStorage.setItem('vybe_youtube_api_key',key);input.value='';$('#youtubeKeyPanel').classList.remove('needs-key');$('#youtubeKeyStatus').textContent='YouTube key saved in this browser. Search is ready.';toast('YouTube connected');if($('#exploreSearch').value.trim())searchOnline($('#exploreSearch').value);
+}
+$('#saveYoutubeKey')?.addEventListener('click',saveYoutubeKey);
+$('#youtubeApiKey')?.addEventListener('keydown',e=>{if(e.key==='Enter')saveYoutubeKey()});
+if(youtubeKey()){const st=$('#youtubeKeyStatus');if(st)st.textContent='YouTube key is saved in this browser.'}
+$('#onlineSearchBtn')?.addEventListener('click',()=>searchOnline($('#exploreSearch').value));
+$('#exploreSearch')?.addEventListener('keydown',e=>{if(e.key==='Enter')searchOnline(e.target.value)});
+$('#globalSearch')?.addEventListener('keydown',e=>{if(e.key==='Enter'){switchView('explore');$('#exploreSearch').value=e.target.value;searchOnline(e.target.value)}});
 $('#onlineTabs')?.addEventListener('click',e=>{
  const b=e.target.closest('[data-kind]');if(!b)return;
  onlineKind=b.dataset.kind;
  $$('#onlineTabs .online-tab').forEach(x=>x.classList.toggle('active',x===b));
- scheduleOnlineSearch($('#exploreSearch').value||$('#globalSearch').value||'');
+ if($('#exploreSearch').value.trim())searchOnline($('#exploreSearch').value);
 });
-function addAudiusTrack(id){
- const r=onlineCache.find(x=>String(x.id)===String(id));
- if(!r){toast('This track is no longer in the results. Search again.');return}
- if(!canAudiusStream(r)){toast('This artist has not made this track streamable.');return}
- let t=tracks.find(x=>x.onlineId===String(r.id));
- if(!t){
-  const artwork=audiusArtwork(r);
-  t={id:'audius-'+r.id,onlineId:String(r.id),title:r.title||'Untitled',artist:r.user?.name||r.user?.handle||'Independent artist',album:r.album?.name||'Audius',duration:Number(r.duration)||0,url:`${AUDIUS_API}/tracks/${encodeURIComponent(r.id)}/stream?app_name=VYBE`,cover:artwork,lyrics:'',online:true,source:'Audius'};
-  tracks.push(t);renderTracks();
- }
- playTrack(t.id);
- toast('Loading full track from Audius…');
-}
 document.addEventListener('click',e=>{
- const p=e.target.closest('[data-audius-play]');
- if(p){e.preventDefault();addAudiusTrack(p.dataset.audiusPlay);return}
- const a=e.target.closest('[data-audius-artist]');
- if(a){e.preventDefault();showAudiusArtistTracks(a.dataset.audiusArtist)}
+ const play=e.target.closest('[data-youtube-play]');
+ if(play){
+   const id=play.dataset.youtubePlay;
+   const v=onlineCache.find(x=>(x.id?.videoId||x.id)===id);
+   const s=v?.snippet||{};
+   const t={id:'youtube-'+id,youtubeId:id,title:s.title||'YouTube track',artist:s.channelTitle||'YouTube',album:'YouTube',duration:0,url:'',cover:s.thumbnails?.high?.url||s.thumbnails?.medium?.url||'',lyrics:'',online:true};
+   const existing=tracks.find(x=>x.id===t.id);if(existing)Object.assign(existing,t);else tracks.push(t);
+   playTrack(t.id);$('#nowPlaying').classList.add('open');
+ }
+ const list=e.target.closest('[data-youtube-list]');
+ if(list){
+   const id=list.dataset.youtubeList,v=onlineCache.find(x=>(x.id?.playlistId||x.id)===id),s=v?.snippet||{};
+   const t={id:'youtube-list-'+id,youtubePlaylistId:id,title:s.title||'YouTube playlist',artist:s.channelTitle||'YouTube',album:'YouTube playlist',duration:0,url:'',cover:s.thumbnails?.high?.url||'',lyrics:'',online:true};
+   tracks.push(t);playTrack(t.id);$('#nowPlaying').classList.add('open');
+ }
+ const ch=e.target.closest('[data-channel-search]');
+ if(ch){onlineKind='song';$('#exploreSearch').value=ch.dataset.channelName;$$('#onlineTabs .online-tab').forEach(x=>x.classList.toggle('active',x.dataset.kind==='song'));searchOnline(ch.dataset.channelName,ch.dataset.channelSearch)}
+ const featured=e.target.closest('[data-featured-artist]');
+ if(featured){switchView('explore');onlineKind='song';$('#exploreSearch').value=featured.dataset.featuredArtist;$$('#onlineTabs .online-tab').forEach(x=>x.classList.toggle('active',x.dataset.kind==='song'));searchOnline(featured.dataset.featuredArtist)}
 });
+renderFeaturedArtists();
 /* Keep desktop and touch navigation in sync. */
 $$('.mobile-nav-item').forEach(b=>b.addEventListener('click',()=>{
  switchView(b.dataset.view);

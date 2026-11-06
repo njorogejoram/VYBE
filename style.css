@@ -307,3 +307,38 @@ body:before{content:"";position:fixed;inset:-20%;pointer-events:none;z-index:-1;
  .player-utility-row{padding-top:6px}
 }
 @media(prefers-reduced-motion:reduce){.large-cover{animation:none}}
+
+
+/* VYBE 4.0 · YouTube discovery and embedded full-length player */
+.featured-artist-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px;margin:0 0 30px}
+.featured-artist-card{position:relative;min-width:0;display:flex;flex-direction:column;align-items:flex-start;text-align:left;gap:6px;padding:13px;border:1px solid rgba(255,255,255,.11);border-radius:16px;background:linear-gradient(145deg,rgba(255,255,255,.085),rgba(255,255,255,.025));color:#fff;overflow:hidden;transition:transform .2s,border-color .2s}
+.featured-artist-card:hover{transform:translateY(-3px);border-color:rgba(157,144,255,.5)}
+.featured-artist-avatar{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;font:800 15px Manrope;color:#fff;background:linear-gradient(135deg,#8769c9,#2d8792);box-shadow:0 5px 18px #0004}
+.tone-afro .featured-artist-avatar{background:linear-gradient(135deg,#d18a50,#754e87)}
+.tone-pop .featured-artist-avatar{background:linear-gradient(135deg,#9c75d4,#4c688d)}
+.tone-rnb .featured-artist-avatar{background:linear-gradient(135deg,#538e9b,#403a70)}
+.tone-hip .featured-artist-avatar{background:linear-gradient(135deg,#9b6b63,#383b60)}
+.tone-kenya .featured-artist-avatar{background:linear-gradient(135deg,#4f927c,#34485f)}
+.tone-alt .featured-artist-avatar{background:linear-gradient(135deg,#8d8f9d,#4a4d6b)}
+.featured-artist-index{position:absolute;right:11px;top:10px;font-size:9px;letter-spacing:1px;color:#aaa7c8}
+.featured-artist-card strong{font-size:11px;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.featured-artist-card small{font-size:9px;color:#aaa8c6}
+.youtube-key-panel{display:grid;grid-template-columns:1fr minmax(220px, .9fr);gap:12px;align-items:center;padding:15px 17px;margin:14px 0 17px;border:1px solid rgba(155,142,255,.22);border-radius:16px;background:rgba(112,100,170,.09)}
+.youtube-key-panel strong{font:700 12px Manrope;color:#fff}
+.youtube-key-panel p,.youtube-key-panel small{font-size:10px;line-height:1.55;color:#aaa8c6;margin-top:5px}
+.youtube-key-controls{display:flex;gap:8px}
+.youtube-key-controls input{min-width:0;flex:1;border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:10px 12px;background:rgba(0,0,0,.22);color:#fff;font-size:11px;outline:none}
+.youtube-key-controls input:focus{border-color:#9c8bff}
+.youtube-key-controls .primary-btn{white-space:nowrap;padding:9px 13px;font-size:10px}
+.youtube-key-panel.needs-key{border-color:rgba(255,173,110,.5)}
+.explore-search{display:flex;align-items:center;gap:10px}
+.explore-search input{flex:1;min-width:0}
+.explore-search .primary-btn{padding:11px 17px;font-size:11px}
+.youtube-frame-wrap{width:min(100%,560px);min-height:200px;aspect-ratio:16/9;border-radius:16px;overflow:hidden;background:#050508;box-shadow:0 18px 50px #0008}
+.youtube-frame-wrap iframe{width:100%;height:100%;border:0;display:block}
+.youtube-mode .large-controls,.youtube-mode .large-progress,.youtube-mode .player-volume,.youtube-mode .player-utility-row{display:none!important}
+.youtube-mode .player-art-stage{padding:12px 0 18px}
+.youtube-mode .youtube-frame-wrap[hidden]{display:none}
+.catalog-note{font-size:10px;color:#9896b4;margin:13px 2px;line-height:1.55}
+@media(max-width:900px){.featured-artist-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:400px){.youtube-frame-wrap{height:200px;aspect-ratio:auto}}\n@media(max-width:600px){.featured-artist-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.featured-artist-card{padding:10px}.featured-artist-avatar{width:42px;height:42px}.youtube-key-panel{grid-template-columns:1fr}.youtube-key-controls{width:100%}.youtube-key-controls .primary-btn{padding-inline:10px}.youtube-frame-wrap{border-radius:12px}}
