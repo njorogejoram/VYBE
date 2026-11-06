@@ -1,6 +1,6 @@
-# VYBE 2.0
+# VYBE 3.0
 
-A responsive, charcoal-themed music library and player built with vanilla HTML, CSS and JavaScript.
+A responsive, artwork-led, dynamic-theme music library and player built with vanilla HTML, CSS and JavaScript.
 
 ## Features
 - Add and play audio files stored on your device
@@ -10,7 +10,9 @@ A responsive, charcoal-themed music library and player built with vanilla HTML, 
 - Playback controls: play, pause, next, previous, shuffle, repeat, seek and volume
 - Lyrics side panel for lyrics you provide or have permission to use
 - Responsive desktop and mobile layouts
-- Glassmorphism panels and a muted charcoal / sage / violet palette
+- Artwork-inspired dynamic colour themes with smooth transitions
+- Playable cover-art cards and an immersive full-screen player
+- Glassmorphism panels, ambient glow and responsive motion
 
 ## Run locally
 Open `index.html` in a modern browser. For best results, use a local development server such as VS Code Live Server.
@@ -36,3 +38,8 @@ Your site will be available at:
 - `style.css` — responsive visual design
 - `script.js` — player and library interactions
 - `README.md` — setup and project documentation
+
+## VYBE 3.0 additions
+- Select a track's **＋ Art** control to add custom cover artwork from your device.
+- Select a cover to play that track; use the mini-player artwork to open the immersive player.
+- The ambient theme adapts to selected artwork where the browser can read its colours. If no cover is set, VYBE uses a coordinated generated art palette.

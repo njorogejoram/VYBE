@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#101116">
-  <title>VYBE — Your sound, your space</title>
+  <title>VYBE 3.0 — Your sound, your space</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -93,7 +93,7 @@
 
   <div id="playerBar" class="player-bar glass">
     <div class="now-playing">
-      <div id="miniCover" class="mini-cover">♫</div><div class="now-meta"><strong id="nowTitle">Choose a track</strong><span id="nowArtist">Your music will sound right at home.</span></div><button id="likeCurrent" class="like-btn" title="Like track">♡</button>
+      <button id="miniCover" class="mini-cover" aria-label="Open full player">♫</button><div class="now-meta"><strong id="nowTitle">Choose a track</strong><span id="nowArtist">Your music will sound right at home.</span></div><button id="likeCurrent" class="like-btn" title="Like track">♡</button>
     </div>
     <div class="player-controls">
       <div class="control-buttons"><button id="shuffleBtn" class="sub-control" title="Shuffle">⤨</button><button id="prevBtn" title="Previous">|‹</button><button id="playBtn" class="play-main" title="Play">▶</button><button id="nextBtn" title="Next">›|</button><button id="repeatBtn" class="sub-control" title="Repeat">↻</button></div>
@@ -104,6 +104,16 @@
 
   <div id="lyricsPanel" class="side-panel glass"><div class="panel-head"><div><p class="eyebrow">SING ALONG</p><h2>Lyrics</h2></div><button class="close-panel" data-close="lyricsPanel">×</button></div><div id="lyricsContent" class="lyrics-content"><div class="lyrics-symbol">♫</div><h3>Let the words find you.</h3><p>Add lyrics for your own tracks using the track details.</p></div></div>
   <div id="queuePanel" class="side-panel glass"><div class="panel-head"><div><p class="eyebrow">UP NEXT</p><h2>Your queue</h2></div><button class="close-panel" data-close="queuePanel">×</button></div><div id="queueContent" class="queue-content"></div></div>
+  <div id="nowPlaying" class="now-playing-overlay">
+    <div class="now-playing-window glass">
+      <div class="now-playing-top"><span class="eyebrow">NOW PLAYING · VYBE 3.0</span><button id="closeNowPlaying" class="close-panel" aria-label="Close player">×</button></div>
+      <div class="large-art-wrap"><div id="largeCover" class="large-cover">♫</div></div>
+      <div class="large-track-meta"><div><h2 id="largeTitle">Choose a track</h2><p id="largeArtist">Your music will sound right at home.</p></div><span class="equalizer" aria-hidden="true"><i></i><i></i><i></i><i></i></span></div>
+      <div class="large-progress"><input id="largeProgress" type="range" min="0" max="100" value="0"></div>
+      <div class="large-controls"><button id="largePrev" aria-label="Previous track">|‹</button><button id="largePlay" class="large-play" aria-label="Play or pause">▶</button><button id="largeNext" aria-label="Next track">›|</button></div>
+      <p class="large-hint">Your music, in full colour.</p>
+    </div>
+  </div>
   <div id="toast" class="toast"></div>
   <audio id="audio"></audio>
   <script src="script.js"></script>
