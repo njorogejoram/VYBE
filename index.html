@@ -4,10 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0a0d1a">
-<title>VYBE 5.4</title>
+<title>VYBE 5.5</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=5.4">
+<link rel="stylesheet" href="style.css?v=5.5">
 </head>
 <body>
 <div id="ambient"></div>
@@ -17,10 +17,11 @@
 </header>
 <main>
   <section id="home" class="view on">
-    <div class="hero"><p>Your sound. Your space.</p><h2>Feel every frequency.</h2><button id="heroPlay">Play trending</button></div>
-    <div id="recentWrap" hidden><h3>Jump back in</h3><div id="recent" class="row"></div></div>
-    <h3>Playlists for you</h3><div id="pls" class="row"></div>
-    <h3>Pick a vibe</h3><div id="moods" class="moods"></div>
+    <div class="greet"><h2 id="hello">Good evening</h2><button id="heroPlay" class="ghost">▶ Trending</button></div>
+    <div id="quick" class="quick"></div>
+    <div id="artWrap" hidden><h3>Artists you're playing</h3><div id="myArtists" class="row"></div></div>
+    <h3>Recommended playlists</h3><div id="pls" class="row"></div>
+    <h3>More mixes</h3><div id="mixes" class="row"></div>
     <h3>Trending now</h3><div id="top"></div>
     <h3>Hot albums</h3><div id="albs" class="row"></div>
     <h3>Popular artists</h3><div id="chart" class="row"></div>
@@ -52,6 +53,7 @@
 <div id="bar" class="glass" data-act="open">
   <div id="pg"></div>
   <img id="art" alt=""><div class="meta"><b id="t">Choose a track</b><small id="s">Search to start listening</small></div>
+  <div class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
   <button data-act="pp" aria-label="Play or pause">▶</button><button data-act="next" aria-label="Next">⏭</button>
 </div>
 <div id="sheet">
@@ -64,6 +66,7 @@
       <button data-act="pp" class="main" aria-label="Play or pause">▶</button>
       <button data-act="next" aria-label="Next">⏭</button><button data-act="like" aria-label="Like">♡</button>
     </div>
+    <button id="modeBtn" class="ghost mode"></button>
     <div class="glass lyrbox">
       <div class="lh"><b>Lyrics</b><button id="addLyr">Add lyrics</button></div>
       <pre id="lyr">Lyrics will appear here.</pre>
@@ -71,11 +74,11 @@
     </div>
   </div>
 </div>
-<nav class="glass">
+<nav class="glass"><i id="thumb"></i>
   <button data-v="home" class="on">Home</button><button data-v="explore">Explore</button>
   <button data-v="artists">Artists</button><button data-v="library">Library</button>
 </nav>
-<script src="app.js?v=5.4"></script>
+<script src="app.js?v=5.5"></script>
 <script src="https://www.youtube.com/iframe_api" async></script>
 </body>
 </html>

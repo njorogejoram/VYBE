@@ -2,7 +2,7 @@ const $ = s => document.querySelector(s), $$ = s => document.querySelectorAll(s)
 const el = (t, c, x) => { const e = document.createElement(t); if (c) e.className = c; if (x != null) e.textContent = x; return e; };
 const store = { get: (k, d) => { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } }, set: (k, v) => localStorage.setItem(k, JSON.stringify(v)) };
 let key = store.get('vybe.key', ''), liked = store.get('vybe.liked', []), hist = store.get('vybe.hist', []), ids = store.get('vybe.ids', {});
-let prev = 'home', cur = 'home', dcol = [];
+let prev = 'home', cur = 'home', dcol = [], mode = store.get('vybe.mode', 'full'), extra = [], artTk = 0;
 let queue = [], idx = -1, shuf = false, yt = null, ytReady = false, pending = null, local = [], trend = [];
 const audio = new Audio();
 const decode = s => { const t = document.createElement('textarea'); t.innerHTML = s; return t.value; };
@@ -33,7 +33,7 @@ function show(v) {
   $$('nav button').forEach(b => b.classList.toggle('on', b.dataset.v === v));
   if (v === 'library') renderLibrary();
   if (v === 'home') renderRecent();
-  scrollTo(0, 0);
+  scrollTo(0, 0); moveThumb(v);
 }
 function card(img, title, sub, open, playFn, round) {
   const c = el('div', 'card' + (round ? ' round' : '')), w = el('div', 'cv');
@@ -113,6 +113,11 @@ function paint(t) {
 }
 async function play(list, i) {
   queue = list; idx = i; const t = list[i]; paint(t); loadLyrics(t);
+  if (mode === 'preview' && t.preview) {
+    t.pv = true; addHist(t); if (ytReady) yt.pauseVideo();
+    $('#stage').classList.remove('on'); audio.src = t.preview; audio.play(); return;
+  }
+  t.pv = false;
   if (t.src === 'q') {
     const id = await ytFind(t.q);
     if (queue[idx] !== t) return;
@@ -134,10 +139,10 @@ function step(d) {
 }
 function toggle() {
   const t = queue[idx]; if (!t) return;
-  if (t.src === 'yt' && ytReady) (yt.getPlayerState() === 1 ? yt.pauseVideo() : yt.playVideo());
+  if (t.src === 'yt' && !t.pv && ytReady) (yt.getPlayerState() === 1 ? yt.pauseVideo() : yt.playVideo());
   else audio.paused ? audio.play() : audio.pause();
 }
-const setPP = on => $$('[data-act=pp]').forEach(b => b.textContent = on ? '⏸' : '▶');
+const setPP = on => { $$('[data-act=pp]').forEach(b => b.textContent = on ? '⏸' : '▶'); document.body.classList.toggle('playing', on); };
 window.onYouTubeIframeAPIReady = () => {
   yt = new YT.Player('yt', { width: '100%', height: '100%', playerVars: { playsinline: 1, rel: 0 }, events: {
     onReady: () => { ytReady = true; if (pending) { yt.loadVideoById(pending); pending = null; } },
@@ -146,15 +151,15 @@ window.onYouTubeIframeAPIReady = () => {
 };
 audio.onplay = () => setPP(true); audio.onpause = () => setPP(false); audio.onended = () => step(1);
 setInterval(() => {
-  const t = queue[idx]; if (!t || t.src === 'q') return;
-  const yo = t.src === 'yt' && ytReady;
+  const t = queue[idx]; if (!t || (t.src === 'q' && !t.pv)) return;
+  const yo = t.src === 'yt' && !t.pv && ytReady;
   const cu = yo ? yt.getCurrentTime() : audio.currentTime, du = yo ? yt.getDuration() : audio.duration;
   $('#cu').textContent = fmt(cu); $('#du').textContent = fmt(du);
   if (du) { const p = cu / du * 100; $('#pg').style.width = p + '%'; if (!$('#sk').matches(':active')) $('#sk').value = p; }
 }, 500);
 $('#sk').oninput = e => {
   const t = queue[idx]; if (!t) return;
-  if (t.src === 'yt' && ytReady) yt.seekTo(yt.getDuration() * e.target.value / 100, true);
+  if (t.src === 'yt' && !t.pv && ytReady) yt.seekTo(yt.getDuration() * e.target.value / 100, true);
   else audio.currentTime = (audio.duration || 0) * e.target.value / 100;
 };
 
@@ -195,8 +200,7 @@ $('#file').onchange = async e => {
   renderLibrary();
 };
 
-const GENRES = [['Afrobeats', 2, '#ff7a45,#ff2a85'], ['R&B', 165, '#ff2a85,#7000ff'], ['Hip-Hop', 116, '#7000ff,#2a4bff'], ['Pop', 132, '#ff5fa8,#b44dff'], ['Dance', 113, '#2a4bff,#00b4d8'], ['Electro', 106, '#5a2bff,#ff2a85'], ['Jazz', 129, '#c2410c,#7000ff'], ['Rock', 152, '#1f2438,#ff2a85']];
-const toTrack = (x, img) => ({ src: 'q', q: x.artist.name + ' ' + x.title + ' official audio', title: x.title, sub: x.artist.name, thumb: img || x.album?.cover_big || x.album?.cover_medium });
+const toTrack = (x, img) => ({ src: 'q', q: x.artist.name + ' ' + x.title + ' official audio', title: x.title, sub: x.artist.name, thumb: img || x.album?.cover_big || x.album?.cover_medium, preview: x.preview });
 async function loadCol(kind, id, img) {
   const p = { playlist: `/playlist/${id}/tracks?limit=50`, album: `/album/${id}/tracks?limit=50`, artist: `/artist/${id}/top?limit=30`, genre: `/chart/${id}/tracks?limit=30` }[kind];
   return (await dz(p)).data.map(x => toTrack(x, kind === 'album' ? img : null));
@@ -210,17 +214,40 @@ async function openCol(kind, id, title, sub, img) {
 async function playOnly(kind, id, img) { try { const l = await loadCol(kind, id, img); if (l.length) play(l, 0); } catch {} }
 const mix = l => [...l].sort(() => Math.random() - .5);
 function addHist(t) {
-  if (t.src !== 'yt') return;
-  hist = [{ src: 'yt', id: t.id, title: t.title, sub: t.sub, thumb: t.thumb }, ...hist.filter(x => x.id !== t.id)].slice(0, 12);
+  if (t.src === 'local') return;
+  const k = t.id || t.q;
+  hist = [{ src: t.q ? 'q' : 'yt', id: t.id, q: t.q, title: t.title, sub: t.sub, thumb: t.thumb, preview: t.preview }, ...hist.filter(x => (x.id || x.q) !== k)].slice(0, 12);
   store.set('vybe.hist', hist);
 }
 function renderRecent() {
-  $('#recentWrap').hidden = !hist.length; $('#recent').replaceChildren();
-  hist.forEach((t, i) => $('#recent').append(card(t.thumb, t.title, t.sub, () => play(hist, i), () => play(hist, i))));
+  const h = new Date().getHours(); $('#hello').textContent = h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';
+  const items = hist.slice(0, 6).map((t, i) => ({ thumb: t.thumb, title: t.title, go: () => play(hist, i) }));
+  $('#quick').replaceChildren();
+  [...items, ...extra].slice(0, 6).forEach(x => {
+    const b = el('button', 'qt'), i = el('img'); i.src = x.thumb || ''; i.alt = '';
+    b.append(i, el('span', '', x.title)); b.onclick = x.go; $('#quick').append(b);
+  });
+  myArtists();
+}
+const apic = store.get('vybe.apic', {});
+async function myArtists() {
+  const tk = ++artTk, names = [...new Set(hist.map(t => t.sub.split(/,|&/)[0].trim()))].slice(0, 8);
+  $('#artWrap').hidden = !names.length; $('#myArtists').replaceChildren();
+  for (const n of names) {
+    try {
+      if (!apic[n]) { const d = (await dz('/search/artist?limit=1&q=' + encodeURIComponent(n))).data[0]; if (!d) continue; apic[n] = { id: d.id, pic: d.picture_big }; store.set('vybe.apic', apic); }
+      if (tk !== artTk) return;
+      const a = apic[n]; $('#myArtists').append(card(a.pic, n, 'Artist', () => openCol('artist', a.id, n, 'Top tracks', a.pic), () => playOnly('artist', a.id), true));
+    } catch {}
+  }
+}
+const MIX = [['Afrobeats', 2], ['R&B', 165], ['Hip-Hop', 116], ['Pop', 132], ['Dance', 113], ['Jazz', 129]];
+function showList(title, sub, img, list) {
+  show('detail'); $('#dt').textContent = title; $('#ds').textContent = sub || ''; $('#dimg').src = img || ''; dcol = list; renderList($('#dlist'), list);
 }
 async function loadHome() {
-  GENRES.forEach(([n, id, g]) => { const b = el('button', '', n); b.style.setProperty('--g', g); b.onclick = () => openCol('genre', id, n, 'Trending in ' + n); $('#moods').append(b); });
   renderRecent();
+  const mxP = Promise.allSettled(MIX.map(([, id]) => dz(`/chart/${id}/tracks?limit=30`)));
   const [tr, ar, pl, al] = await Promise.allSettled([dz('/chart/0/tracks?limit=12'), dz('/chart/0/artists?limit=40'), dz('/chart/0/playlists?limit=12'), dz('/chart/0/albums?limit=12')]);
   if (tr.value) { trend = tr.value.data.map(x => toTrack(x)); renderList($('#top'), trend); } else $('#top').append(el('p', 'muted', 'Could not load trending music. Check your connection.'));
   (pl.value?.data || []).forEach(x => $('#pls').append(card(x.picture_big, x.title, (x.nb_tracks || '') + ' songs', () => openCol('playlist', x.id, x.title, x.user?.name || 'Playlist', x.picture_big), () => playOnly('playlist', x.id))));
@@ -228,6 +255,14 @@ async function loadHome() {
   (ar.value?.data || []).forEach((x, n) => {
     const mk = () => card(x.picture_big, x.name, 'Artist', () => openCol('artist', x.id, x.name, 'Top tracks', x.picture_big), () => playOnly('artist', x.id), true);
     if (n < 12) $('#chart').append(mk()); $('#artistGrid').append(mk());
+  });
+  extra = [...(pl.value?.data || []).slice(0, 3).map(x => ({ thumb: x.picture_medium, title: x.title, go: () => playOnly('playlist', x.id) })),
+           ...(al.value?.data || []).slice(0, 3).map(x => ({ thumb: x.cover_medium, title: x.title, go: () => playOnly('album', x.id, x.cover_big) }))];
+  renderRecent();
+  (await mxP).forEach((r, i) => {
+    if (!r.value) return;
+    const l = r.value.data.map(x => toTrack(x)), g = MIX[i][0], n = g + ' Mix', img = l[0]?.thumb;
+    $('#mixes').append(card(img, n, 'Top ' + g + ' hits', () => showList(n, 'Top hits in ' + g, img, l), () => play(l, 0)));
   });
 }
 $('#back').onclick = () => show(prev === 'detail' ? 'home' : prev);
@@ -243,6 +278,33 @@ const act = {
 $$('[data-act]').forEach(b => b.onclick = e => { e.stopPropagation(); act[b.dataset.act](); });
 $('#sf').onsubmit = e => { e.preventDefault(); search($('#q').value); };
 $('#kf').onsubmit = e => { e.preventDefault(); key = $('#key').value.trim(); store.set('vybe.key', key); $('#keybox').hidden = !!key; if ($('#q').value) search($('#q').value); };
-$$('nav button').forEach(b => b.onclick = () => { sheet(false); show(b.dataset.v); });
+const nav = $('nav'), tabs = [...$$('nav button')], order = tabs.map(b => b.dataset.v);
+function moveThumb(v) {
+  const b = tabs.find(x => x.dataset.v === v); if (!b) return;
+  $('#thumb').style.width = b.offsetWidth + 'px'; $('#thumb').style.transform = `translateX(${b.offsetLeft}px)`;
+  tabs.forEach(x => x.classList.toggle('on', x === b));
+}
+let drag = false;
+const pick = e => {
+  const r = nav.getBoundingClientRect(), x = Math.min(Math.max(e.clientX, r.left + 6), r.right - 6);
+  const b = tabs.find(t => { const q = t.getBoundingClientRect(); return x >= q.left && x <= q.right; });
+  if (b && b.dataset.v !== cur) { sheet(false); show(b.dataset.v); }
+};
+nav.onpointerdown = e => { drag = true; nav.setPointerCapture(e.pointerId); pick(e); };
+nav.onpointermove = e => { if (drag) pick(e); };
+nav.onpointerup = nav.onpointercancel = () => { drag = false; };
+tabs.forEach(b => b.onclick = () => { sheet(false); show(b.dataset.v); });
+addEventListener('resize', () => moveThumb(cur));
+let sx = 0, sy = 0, sOk = false;
+document.addEventListener('touchstart', e => { const t = e.touches[0]; sx = t.clientX; sy = t.clientY; sOk = !e.target.closest('.row,input,textarea,#sheet,#stage,nav'); }, { passive: true });
+document.addEventListener('touchend', e => {
+  if (!sOk || !order.includes(cur)) return;
+  const t = e.changedTouches[0], dx = t.clientX - sx, dy = t.clientY - sy;
+  if (Math.abs(dx) < 70 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+  const n = order[order.indexOf(cur) + (dx < 0 ? 1 : -1)]; if (n) show(n);
+}, { passive: true });
+const modeLabel = () => { $('#modeBtn').textContent = mode === 'full' ? 'Full songs · YouTube' : '30s previews · in VYBE'; };
+$('#modeBtn').onclick = () => { mode = mode === 'full' ? 'preview' : 'full'; store.set('vybe.mode', mode); modeLabel(); if (queue[idx]) play(queue, idx); };
+modeLabel();
 $('#heroPlay').onclick = () => { if (trend.length) play(mix(trend), 0); };
-loadLocal(); loadHome();
+loadLocal(); loadHome(); moveThumb('home'); document.fonts?.ready.then(() => moveThumb(cur));
