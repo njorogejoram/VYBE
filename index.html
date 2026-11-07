@@ -4,10 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0a0d1a">
-<title>VYBE 5.9</title>
+<title>VYBE 6.0</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=5.9">
+<link rel="stylesheet" href="style.css?v=6.0">
 </head>
 <body>
 <div id="ambient"></div>
@@ -58,16 +58,17 @@
   <div id="pg"></div>
   <img id="art" alt=""><div class="meta"><b id="t">Choose a track</b><small id="s">Search to start listening</small></div>
   <div class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
-  <button data-act="pp" aria-label="Play or pause">▶</button><button data-act="next" aria-label="Next">⏭</button>
+  <button data-act="pp" aria-label="Play or pause" class="bp"><svg viewBox="0 0 24 24" aria-hidden="true" class="ip"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z" fill="currentColor"/></svg><svg viewBox="0 0 24 24" aria-hidden="true" class="ia"><rect x="6.5" y="5" width="4" height="14" rx="1.4" fill="currentColor"/><rect x="13.5" y="5" width="4" height="14" rx="1.4" fill="currentColor"/></svg></button><button data-act="next" aria-label="Next" class="bp"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 6.2v11.6a.9.9 0 0 0 1.4.75l8-5.8a.9.9 0 0 0 0-1.5l-8-5.8A.9.9 0 0 0 5 6.2z" fill="currentColor"/><rect x="16" y="5.5" width="2.8" height="13" rx="1.2" fill="currentColor"/></svg></button>
 </div>
 <div id="sheet">
   <div class="grab"><button data-act="close" aria-label="Close player">⌄</button></div>
   <div class="sbody">
     <div id="cover"><img id="bigart" alt=""><button data-act="pp" class="cpp" aria-label="Play or pause">▶</button></div><div class="trow"><div class="tt"><h2 id="t2">Choose a track</h2><p id="s2" class="muted"></p><small id="srcbadge"></small></div><button data-act="like" class="ic" aria-label="Like">♡</button></div>
     <div class="seek2"><input id="sk" type="range" min="0" max="100" step="0.1" value="0" aria-label="Seek"><div><span id="cu">0:00</span><span id="du">0:00</span></div></div>
-    <div class="ctl2"><button data-act="prev" aria-label="Previous">⏮︎</button><button data-act="pp" class="main" aria-label="Play or pause">▶︎</button><button data-act="next" aria-label="Next">⏭︎</button></div>
-    <div class="vol"><span>🔈︎</span><input id="vol" type="range" min="0" max="1" step="0.01" value="1" aria-label="Volume"><span>🔊︎</span></div>
-    <div class="bot"><button data-act="shuf" aria-label="Shuffle">⤨</button><button id="lyrTog" class="on">❝ Lyrics</button></div>
+    <div class="ctl2"><button data-act="prev" aria-label="Previous"><svg viewBox="0 0 24 24" aria-hidden="true" class="flip"><path d="M5 6.2v11.6a.9.9 0 0 0 1.4.75l8-5.8a.9.9 0 0 0 0-1.5l-8-5.8A.9.9 0 0 0 5 6.2z" fill="currentColor"/><rect x="16" y="5.5" width="2.8" height="13" rx="1.2" fill="currentColor"/></svg></button><button data-act="pp" class="main" aria-label="Play or pause"><svg viewBox="0 0 24 24" aria-hidden="true" class="ip"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z" fill="currentColor"/></svg><svg viewBox="0 0 24 24" aria-hidden="true" class="ia"><rect x="6.5" y="5" width="4" height="14" rx="1.4" fill="currentColor"/><rect x="13.5" y="5" width="4" height="14" rx="1.4" fill="currentColor"/></svg></button><button data-act="next" aria-label="Next"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 6.2v11.6a.9.9 0 0 0 1.4.75l8-5.8a.9.9 0 0 0 0-1.5l-8-5.8A.9.9 0 0 0 5 6.2z" fill="currentColor"/><rect x="16" y="5.5" width="2.8" height="13" rx="1.2" fill="currentColor"/></svg></button></div>
+    <div class="vol"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5v5h3.5l4.5 4v-13l-4.5 4z" fill="currentColor"/></svg><input id="vol" type="range" min="0" max="1" step="0.01" value="1" aria-label="Volume"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5v5h3.5l4.5 4v-13l-4.5 4z" fill="currentColor"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <div class="bot"><button data-act="shuf" aria-label="Shuffle"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h3.5c2 0 3.2 1 4.3 2.6l2.4 3.8c1.1 1.6 2.3 2.6 4.3 2.6H21M3 17h3.5c2 0 3.2-1 4.3-2.6M13.2 10.6C14.3 9 15.5 8 17.5 8H21M18.5 5.5 21 8l-2.5 2.5M18.5 13.5 21 16l-2.5 2.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button id="lyrTog" class="on" aria-label="Lyrics"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5h14a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1h-7l-4.5 3.5V16H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 9h8M8 12h5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button id="qTog" aria-label="Queue"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6.5h12M4 12h12M4 17.5h6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M16.5 14.5v6l5-3z" fill="currentColor"/></svg></button></div>
+    <div id="qbox" class="glass box" hidden><b>Up next</b><div id="qlist"></div></div>
     <div class="glass lyrbox">
       <div class="lh"><b>Lyrics</b><button id="addLyr">Add lyrics</button></div>
       <div id="lyr">Lyrics will appear here.</div>
@@ -81,7 +82,7 @@
   <button data-v="home" class="on">Home</button><button data-v="explore">Explore</button>
   <button data-v="artists">Artists</button><button data-v="library">Library</button>
 </nav>
-<script src="app.js?v=5.9"></script>
+<script src="app.js?v=6.0"></script>
 <script src="https://www.youtube.com/iframe_api" async></script>
 </body>
 </html>

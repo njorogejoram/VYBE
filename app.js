@@ -139,7 +139,8 @@ async function play(list, i) {
   await resolve(t); if (queue[idx] !== t) return;
   const u = t.url || t.preview;
   if (!t.yt && !u) { $('#srcbadge').textContent = 'No playable version found'; return; }
-  t.retry = false; t.viaYT = !!t.yt; paint(t); loadLyrics(t); addHist(t);
+  t.retry = false; t.started = true; t.viaYT = !!t.yt; paint(t); loadLyrics(t); addHist(t);
+  if (!$('#qbox').hidden) renderQueue();
   if (t.viaYT) {
     audio.pause(); $('#stage').classList.add('on'); $('#srcbadge').textContent = 'Full song · YouTube';
     if (ytReady) yt.loadVideoById(t.yt); else pending = t.yt;
@@ -155,10 +156,11 @@ function step(d) {
 }
 function toggle() {
   const t = queue[idx]; if (!t) return;
+  if (!t.started) { play(queue, idx); return; }
   if (t.viaYT && ytReady) yt.getPlayerState() === 1 ? yt.pauseVideo() : yt.playVideo();
   else audio.paused ? audio.play() : audio.pause();
 }
-const setPP = on => { $$('[data-act=pp]').forEach(b => b.textContent = on ? '⏸\uFE0E' : '▶\uFE0E'); document.body.classList.toggle('playing', on); };
+const setPP = on => document.body.classList.toggle('playing', on);
 audio.onplay = () => { if (!cur_().viaYT) setPP(true); }; audio.onpause = () => { if (!cur_().viaYT) setPP(false); }; audio.onended = () => step(1);
 window.onYouTubeIframeAPIReady = () => {
   yt = new YT.Player('yt', { width: '100%', height: '100%', playerVars: { playsinline: 1, rel: 0 }, events: {
@@ -179,10 +181,11 @@ setInterval(() => {
   const yo = t.viaYT && ytReady, cu = yo ? yt.getCurrentTime() : audio.currentTime, du = yo ? yt.getDuration() : audio.duration;
   if (yo ? yt.getPlayerState() === 1 : !audio.paused) { stats.secs += .25; if (++tk % 40 === 0) store.set('vybe.stats', stats); }
   $('#cu').textContent = fmt(cu); $('#du').textContent = fmt(du);
-  if (du) { const p = cu / du * 100; $('#pg').style.width = p + '%'; if (!$('#sk').matches(':active')) $('#sk').value = p; }
-  tickLyrics(cu);
+  if (du) { const p = cu / du * 100; $('#pg').style.width = p + '%'; if (!$('#sk').matches(':active')) { $('#sk').value = p; $('#sk').style.setProperty('--p', p + '%'); } }
+  tickLyrics(cu); posStage();
 }, 250);
 $('#sk').oninput = e => {
+  $('#sk').style.setProperty('--p', e.target.value + '%');
   const t = queue[idx]; if (!t) return;
   if (t.viaYT && ytReady) yt.seekTo(yt.getDuration() * e.target.value / 100, true); else audio.currentTime = (audio.duration || 0) * e.target.value / 100;
 };
@@ -327,7 +330,19 @@ $('#back').onclick = () => show(prev === 'detail' ? 'home' : prev);
 $('#dplay').onclick = () => { if (dcol.length) play(dcol, 0); };
 $('#dshuf').onclick = () => { if (dcol.length) play(mix(dcol), 0); };
 
-const sheet = on => { $('#sheet').classList.toggle('on', on); $('#stage').classList.toggle('full', on); };
+const sheet = on => { $('#sheet').classList.toggle('on', on); $('#stage').classList.toggle('full', on); if (!on) $('#stage').style.left = $('#stage').style.top = ''; };
+// YouTube's rules keep its player visible, so it sits as a small card in the corner of the full cover art
+function posStage() {
+  const s = $('#stage'); if (!s.classList.contains('full')) return;
+  const r = $('#cover').getBoundingClientRect();
+  s.style.left = (r.right - s.offsetWidth - 10) + 'px'; s.style.top = (r.bottom - s.offsetHeight - 10) + 'px';
+}
+$('#sheet').addEventListener('scroll', posStage);
+function renderQueue() {
+  renderList($('#qlist'), queue); [...$('#qlist').children][idx]?.classList.add('cur');
+  [...$('#qlist').children][idx]?.scrollIntoView({ block: 'nearest' });
+}
+$('#qTog').onclick = e => { const b = $('#qbox'); b.hidden = !b.hidden; e.currentTarget.classList.toggle('on', !b.hidden); if (!b.hidden) renderQueue(); };
 const act = {
   pp: toggle, next: () => step(1), prev: () => step(-1), open: () => sheet(true), close: () => sheet(false),
   shuf: () => { shuf = !shuf; $$('[data-act=shuf]').forEach(b => b.classList.toggle('on', shuf)); },
@@ -340,7 +355,8 @@ $('#kf').onsubmit = e => { e.preventDefault(); key = $('#key').value.trim(); sto
 const nudge = d => { const t = queue[idx]; if (!t) return; offset = (offset ?? 0) + d; store.set(offKey(t), offset); $('#hint').hidden = true; };
 $('#nEarly').onclick = () => nudge(.5); $('#nLate').onclick = () => nudge(-.5);
 $('#lyrTog').onclick = e => { const b = document.querySelector('.lyrbox'); b.hidden = !b.hidden; e.currentTarget.classList.toggle('on', !b.hidden); };
-$('#vol').oninput = e => audio.volume = e.target.value;
+$('#vol').oninput = e => { audio.volume = e.target.value; e.target.style.setProperty('--p', e.target.value * 100 + '%'); };
+$('#vol').style.setProperty('--p', '100%');
 $('#sf').onsubmit = e => { e.preventDefault(); search($('#q').value); };
 const nav = $('nav'), tabs = [...$$('nav button')], order = tabs.map(b => b.dataset.v);
 function moveThumb(v) {
@@ -390,3 +406,5 @@ $('#rmKey').onclick = () => { key = ''; localStorage.removeItem('vybe.key'); };
 $('#rmJ').onclick = () => { jkey = ''; localStorage.removeItem('vybe.jkey'); };
 $('#rmStats').onclick = () => { hist = []; store.set('vybe.hist', []); localStorage.removeItem('vybe.stats'); Object.assign(stats, { plays: 0, secs: 0, artists: {}, tracks: {} }); renderSettings(); };
 applyTheme();
+
+if (hist[0]) { queue = hist; idx = 0; paint(hist[0]); }
