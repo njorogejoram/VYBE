@@ -4,10 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0a0a14">
-<title>VYBE 5.2</title>
+<title>VYBE 5.3</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=5.3">
 </head>
 <body>
 <div id="ambient"></div>
@@ -18,17 +18,18 @@
 <main>
   <section id="home" class="view on">
     <div class="hero"><p>Your sound. Your space.</p><h2>Feel every frequency.</h2><button id="heroPlay">Play trending</button></div>
-    <h3>Find your mood</h3>
-    <div class="moods">
-      <button data-q="night drive songs" style="--g:#4f46e5,#c026d3">Night drive</button>
-      <button data-q="deep focus music" style="--g:#0891b2,#22d3ee">Deep focus</button>
-      <button data-q="slow chill songs" style="--g:#db2777,#fb923c">Slow down</button>
-      <button data-q="high energy workout songs" style="--g:#dc2626,#facc15">High energy</button>
-      <button data-q="afrobeats hits" style="--g:#16a34a,#a3e635">Afrobeats</button>
-      <button data-q="r&b hits" style="--g:#7c3aed,#f472b6">R&amp;B</button>
-    </div>
+    <div id="recentWrap" hidden><h3>Jump back in</h3><div id="recent" class="row"></div></div>
+    <h3>Playlists for you</h3><div id="pls" class="row"></div>
+    <h3>Pick a vibe</h3><div id="moods" class="moods"></div>
     <h3>Trending now</h3><div id="top"></div>
+    <h3>Hot albums</h3><div id="albs" class="row"></div>
     <h3>Popular artists</h3><div id="chart" class="row"></div>
+  </section>
+  <section id="detail" class="view">
+    <button id="back" class="ghost">‹ Back</button>
+    <div class="dhead"><img id="dimg" alt=""><div><h2 id="dt"></h2><p id="ds" class="muted"></p>
+      <div class="dbtn"><button id="dplay">Play</button><button id="dshuf" class="ghost">Shuffle</button></div></div></div>
+    <div id="dlist"></div>
   </section>
   <section id="explore" class="view">
     <div id="keybox" class="glass box" hidden>
@@ -74,7 +75,7 @@
   <button data-v="home" class="on">Home</button><button data-v="explore">Explore</button>
   <button data-v="artists">Artists</button><button data-v="library">Library</button>
 </nav>
-<script src="app.js"></script>
+<script src="app.js?v=5.3"></script>
 <script src="https://www.youtube.com/iframe_api" async></script>
 </body>
 </html>

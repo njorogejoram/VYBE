@@ -1,6 +1,6 @@
-# VYBE 5.2
+# VYBE 5.3
 
-Music app that searches YouTube and plays full songs inside VYBE's own player screen.
+Music app that searches YouTube and plays full songs inside VYBE's own player screen. Home has playlists, albums, artists and genres from Deezer; cover art is playable.
 Charts, artist pictures and album covers come from Deezer. Lyrics come from lyrics.ovh.
 
 ## Set up

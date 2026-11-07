@@ -20,11 +20,6 @@ main{padding:0 16px;max-width:920px;margin:auto}
 .moods button{height:84px;text-align:left;font-size:17px;font-weight:800;border-radius:20px;background:linear-gradient(135deg,var(--g))}
 .row{display:flex;gap:14px;overflow-x:auto;padding-bottom:6px}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:16px}
-.card{background:none;color:var(--text);text-align:center;width:116px;flex:none;padding:0;font-weight:400}
-.grid .card{width:auto}
-.card img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:50%;background:#ffffff18;box-shadow:0 8px 24px rgba(0,0,0,.4)}
-.card.sq img{border-radius:16px}
-.card span{display:block;font-size:13px;margin-top:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .track{display:flex;align-items:center;gap:12px;padding:8px;border-radius:16px}
 .track:hover{background:rgba(255,255,255,.07)}
 .track img{width:56px;height:56px;border-radius:12px;object-fit:cover;background:#ffffff18}
@@ -58,3 +53,17 @@ nav button.on{color:#fff;background:rgba(255,255,255,.18)}
 pre{white-space:pre-wrap;font:16px/1.7 Sora,sans-serif;margin:12px 0 0;max-height:46vh;overflow-y:auto}
 textarea{width:100%;min-height:140px;margin:10px 0}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
+
+.card{width:150px;flex:none}
+.grid .card{width:auto}
+.cv{position:relative;aspect-ratio:1;border-radius:20px;overflow:hidden;cursor:pointer;box-shadow:0 12px 30px rgba(0,0,0,.5)}
+.card.round .cv{border-radius:50%}
+.cv img{width:100%;height:100%;object-fit:cover;display:block;background:#ffffff18}
+.pl{position:absolute;right:8px;bottom:8px;width:44px;height:44px;border-radius:50%;padding:0;font-size:15px;background:rgba(255,255,255,.2);backdrop-filter:blur(14px) saturate(180%);-webkit-backdrop-filter:blur(14px) saturate(180%);border:1px solid rgba(255,255,255,.45);box-shadow:inset 0 1px 0 rgba(255,255,255,.65),0 6px 16px rgba(0,0,0,.4)}
+.card span,.card small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.card span{font-weight:600;font-size:14px;margin-top:9px}
+.ghost{background:rgba(255,255,255,.14);backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.2)}
+.dhead{display:flex;gap:18px;align-items:flex-end;margin:16px 0 14px}
+.dhead img{width:min(42vw,210px);aspect-ratio:1;object-fit:cover;border-radius:22px;box-shadow:0 16px 40px rgba(0,0,0,.55);background:#ffffff18}
+.dhead h2{margin:0 0 4px;font-size:clamp(20px,5vw,30px);line-height:1.1}.dhead p{margin:0}
+.dbtn{display:flex;gap:10px;margin-top:14px}
