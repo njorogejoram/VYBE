@@ -1,14 +1,13 @@
-const $ = s => document.querySelector(s);
+const $ = s => document.querySelector(s), $$ = s => document.querySelectorAll(s);
 const el = (t, c, x) => { const e = document.createElement(t); if (c) e.className = c; if (x != null) e.textContent = x; return e; };
 const store = { get: (k, d) => { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } }, set: (k, v) => localStorage.setItem(k, JSON.stringify(v)) };
 let key = store.get('vybe.key', ''), liked = store.get('vybe.liked', []);
-let queue = [], idx = -1, shuf = false, yt = null, ytReady = false, pending = null, local = [];
+let queue = [], idx = -1, shuf = false, yt = null, ytReady = false, pending = null, local = [], top = [];
 const audio = new Audio();
-
 const decode = s => { const t = document.createElement('textarea'); t.innerHTML = s; return t.value; };
 const fmt = s => { s = Math.max(0, Math.floor(s || 0)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
 
-// Deezer has no CORS, so it is called with JSONP (artist pictures and album covers only)
+// Deezer has no CORS, so it is called with JSONP (charts, artist pictures, album covers)
 function dz(path) {
   return new Promise((res, rej) => {
     const cb = 'dz' + Math.random().toString(36).slice(2), s = document.createElement('script');
@@ -21,43 +20,64 @@ function dz(path) {
   });
 }
 
+// Songs you add are saved in the browser (IndexedDB) so they stay after you close the tab
+const db = new Promise((res, rej) => { const r = indexedDB.open('vybe', 1); r.onupgradeneeded = () => r.result.createObjectStore('files', { keyPath: 'id' }); r.onsuccess = () => res(r.result); r.onerror = rej; });
+const tx = async (m, f) => { const d = await db; return new Promise((res, rej) => { const r = f(d.transaction('files', m).objectStore('files')); r.onsuccess = () => res(r.result); r.onerror = rej; }); };
+const toLocal = f => ({ src: 'local', id: f.id, title: f.name, sub: 'On this device', url: URL.createObjectURL(f.blob), fileName: f.fileName });
+async function loadLocal() { try { local = (await tx('readonly', s => s.getAll())).map(toLocal); } catch { local = []; } }
+
 function show(v) {
-  document.querySelectorAll('.view').forEach(x => x.classList.toggle('on', x.id === v));
-  document.querySelectorAll('nav button').forEach(b => b.classList.toggle('on', b.dataset.v === v));
+  $$('.view').forEach(x => x.classList.toggle('on', x.id === v));
+  $$('nav button').forEach(b => b.classList.toggle('on', b.dataset.v === v));
   if (v === 'library') renderLibrary();
   scrollTo(0, 0);
 }
-
 function card(img, title, onclick, square) {
   const b = el('button', 'card' + (square ? ' sq' : ''));
   const i = el('img'); i.src = img || ''; i.alt = ''; i.loading = 'lazy';
   b.append(i, el('span', '', title)); b.onclick = onclick; return b;
 }
 
-function trackRow(list, i) {
-  const t = list[i], r = el('div', 'track');
-  const im = el('img'); im.src = t.thumb || ''; im.alt = '';
-  const info = el('div', 'i'); info.append(el('b', '', t.title), el('small', '', t.sub));
-  info.onclick = () => play(list, i);
-  const lk = el('button', '', isLiked(t) ? '♥' : '♡'); lk.title = 'Like';
-  lk.onclick = () => { toggleLike(t); lk.textContent = isLiked(t) ? '♥' : '♡'; };
-  r.append(im, info, lk); return r;
-}
-const renderList = (box, list) => { box.replaceChildren(); list.forEach((_, i) => box.append(trackRow(list, i))); };
-
-const isLiked = t => liked.some(x => x.src === t.src && (x.id || x.title) === (t.id || t.title));
+const isLiked = t => liked.some(x => x.src === t.src && x.id === t.id);
 function toggleLike(t) {
   if (t.src === 'local') return;
   liked = isLiked(t) ? liked.filter(x => !(x.src === t.src && x.id === t.id)) : [...liked, t];
   store.set('vybe.liked', liked); syncLike();
 }
-function syncLike() { const t = queue[idx]; $('#like').textContent = t && isLiked(t) ? '♥' : '♡'; }
+function syncLike() { const t = queue[idx]; $$('[data-act=like]').forEach(b => b.textContent = t && isLiked(t) ? '♥' : '♡'); }
+
+function trackRow(list, i) {
+  const t = list[i], r = el('div', 'track');
+  const im = el('img'); im.src = t.thumb || ''; im.alt = '';
+  const info = el('div', 'i'); info.append(el('b', '', t.title), el('small', '', t.sub));
+  info.onclick = () => play(list, i);
+  r.append(im, info);
+  if (t.src === 'local') {
+    const dl = el('a', '', '⬇'); dl.href = t.url; dl.download = t.fileName || t.title; dl.title = 'Download';
+    const rm = el('button', '', '✕'); rm.title = 'Remove';
+    rm.onclick = async () => { await tx('readwrite', s => s.delete(t.id)); local = local.filter(x => x.id !== t.id); renderLibrary(); };
+    r.append(dl, rm);
+  } else {
+    const lk = el('button', '', isLiked(t) ? '♥' : '♡'); lk.title = 'Like';
+    lk.onclick = () => { toggleLike(t); lk.textContent = isLiked(t) ? '♥' : '♡'; };
+    r.append(lk);
+  }
+  return r;
+}
+const renderList = (box, list) => { box.replaceChildren(); list.forEach((_, i) => box.append(trackRow(list, i))); };
+
+async function ytFind(q) {
+  if (!key) { show('explore'); $('#keybox').hidden = false; $('#msg').textContent = 'Add your YouTube key to play songs.'; return null; }
+  try {
+    const d = await (await fetch('https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&videoCategoryId=10&videoEmbeddable=true&maxResults=1&q=' + encodeURIComponent(q) + '&key=' + encodeURIComponent(key))).json();
+    return d.items?.[0]?.id.videoId || null;
+  } catch { return null; }
+}
 
 async function search(q) {
   q = q.trim(); if (!q) return;
-  show('explore'); $('#q').value = q;
-  $('#keybox').hidden = !!key;
-  $('#songs').replaceChildren(); $('#artistsHit').replaceChildren(); $('#albumsHit').replaceChildren();
+  show('explore'); $('#q').value = q; $('#keybox').hidden = !!key;
+  ['#songs', '#artistsHit', '#albumsHit'].forEach(s => $(s).replaceChildren());
   $('#msg').textContent = 'Searching…';
   const yts = key ? fetch('https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&videoCategoryId=10&videoEmbeddable=true&maxResults=20&q=' + encodeURIComponent(q) + '&key=' + encodeURIComponent(key)).then(r => r.json()) : Promise.resolve(null);
   const [y, a, al] = await Promise.allSettled([yts, dz('/search/artist?limit=10&q=' + encodeURIComponent(q)), dz('/search/album?limit=10&q=' + encodeURIComponent(q))]);
@@ -69,15 +89,28 @@ async function search(q) {
   else if (!d?.items?.length) $('#msg').textContent = 'No songs found. Try another search.';
   else {
     $('#msg').textContent = '';
-    queue = d.items.map(v => ({ src: 'yt', id: v.id.videoId, title: decode(v.snippet.title), sub: decode(v.snippet.channelTitle), thumb: v.snippet.thumbnails.medium?.url }));
-    renderList($('#songs'), queue);
+    const list = d.items.map(v => ({ src: 'yt', id: v.id.videoId, title: decode(v.snippet.title), sub: decode(v.snippet.channelTitle), thumb: v.snippet.thumbnails.medium?.url }));
+    renderList($('#songs'), list); queue = list;
   }
 }
 
-function play(list, i) {
-  queue = list; idx = i; const t = list[i];
-  $('#t').textContent = t.title; $('#s').textContent = t.sub; $('#art').src = t.thumb || '';
+function paint(t) {
+  $('#t').textContent = $('#t2').textContent = t.title;
+  $('#s').textContent = $('#s2').textContent = t.sub;
+  $('#art').src = t.thumb || '';
+  $('#ambient').style.backgroundImage = t.thumb ? `url("${t.thumb}")` : '';
+  $('#ambient').classList.toggle('art', !!t.thumb);
+  $('#addLyr').textContent = 'Add lyrics'; $('#lyrEd').hidden = true;
   syncLike();
+}
+async function play(list, i) {
+  queue = list; idx = i; const t = list[i]; paint(t); loadLyrics(t);
+  if (t.src === 'q') {
+    const id = await ytFind(t.q);
+    if (queue[idx] !== t) return;
+    if (!id) { $('#s').textContent = 'Could not find this song'; return; }
+    t.id = id; t.src = 'yt';
+  }
   if (t.src === 'yt') {
     audio.pause(); $('#stage').classList.add('on');
     if (ytReady) yt.loadVideoById(t.id); else pending = t.id;
@@ -88,31 +121,27 @@ function play(list, i) {
 }
 function step(d) {
   if (!queue.length) return;
-  const n = shuf ? Math.floor(Math.random() * queue.length) : (idx + d + queue.length) % queue.length;
-  play(queue, n);
+  play(queue, shuf ? Math.floor(Math.random() * queue.length) : (idx + d + queue.length) % queue.length);
 }
 function toggle() {
   const t = queue[idx]; if (!t) return;
   if (t.src === 'yt' && ytReady) (yt.getPlayerState() === 1 ? yt.pauseVideo() : yt.playVideo());
   else audio.paused ? audio.play() : audio.pause();
 }
-
+const setPP = on => $$('[data-act=pp]').forEach(b => b.textContent = on ? '⏸' : '▶');
 window.onYouTubeIframeAPIReady = () => {
-  yt = new YT.Player('yt', { width: '100%', height: '100%', playerVars: { playsinline: 1 }, events: {
+  yt = new YT.Player('yt', { width: '100%', height: '100%', playerVars: { playsinline: 1, rel: 0 }, events: {
     onReady: () => { ytReady = true; if (pending) { yt.loadVideoById(pending); pending = null; } },
-    onStateChange: e => { $('#pp').textContent = e.data === 1 ? '⏸' : '▶'; if (e.data === 0) step(1); },
+    onStateChange: e => { setPP(e.data === 1); if (e.data === 0) step(1); },
     onError: () => step(1) } });
 };
-audio.onplay = () => $('#pp').textContent = '⏸';
-audio.onpause = () => $('#pp').textContent = '▶';
-audio.onended = () => step(1);
-
+audio.onplay = () => setPP(true); audio.onpause = () => setPP(false); audio.onended = () => step(1);
 setInterval(() => {
-  const t = queue[idx]; if (!t) return;
+  const t = queue[idx]; if (!t || t.src === 'q') return;
   const yo = t.src === 'yt' && ytReady;
   const cu = yo ? yt.getCurrentTime() : audio.currentTime, du = yo ? yt.getDuration() : audio.duration;
   $('#cu').textContent = fmt(cu); $('#du').textContent = fmt(du);
-  if (du && !$('#sk').matches(':active')) $('#sk').value = (cu / du) * 100;
+  if (du) { const p = cu / du * 100; $('#pg').style.width = p + '%'; if (!$('#sk').matches(':active')) $('#sk').value = p; }
 }, 500);
 $('#sk').oninput = e => {
   const t = queue[idx]; if (!t) return;
@@ -120,33 +149,62 @@ $('#sk').oninput = e => {
   else audio.currentTime = (audio.duration || 0) * e.target.value / 100;
 };
 
+// Lyrics: fetched from lyrics.ovh, or pasted by you and saved in this browser
+const clean = s => s.replace(/\(.*?\)|\[.*?\]/g, '').replace(/official|music video|video|audio|lyrics?|\bhd\b|4k/gi, '').replace(/\s+/g, ' ').trim();
+function parse(t) {
+  const c = clean(t.title), p = c.split(/\s[-–|]\s/);
+  if (p.length > 1) return { a: p[0].trim(), s: p.slice(1).join(' ').replace(/\s(ft|feat)\.?.*$/i, '').trim() };
+  return { a: clean(t.sub.replace(/ - Topic|VEVO/gi, '')), s: c };
+}
+async function loadLyrics(t) {
+  const box = $('#lyr'), k = 'vybe.lyr.' + (t.id || t.title), saved = localStorage.getItem(k);
+  if (saved) { box.textContent = saved; return; }
+  box.textContent = 'Finding lyrics…';
+  const { a, s } = parse(t);
+  try {
+    const d = await (await fetch(`https://api.lyrics.ovh/v1/${encodeURIComponent(a)}/${encodeURIComponent(s)}`)).json();
+    if (queue[idx] === t) box.textContent = d.lyrics ? d.lyrics.trim() : 'No lyrics found. Tap Add lyrics to paste them.';
+  } catch { if (queue[idx] === t) box.textContent = 'Could not load lyrics. Tap Add lyrics to paste them.'; }
+}
+$('#addLyr').onclick = () => { const o = $('#lyrEd').hidden; $('#lyrEd').hidden = !o; $('#addLyr').textContent = o ? 'Cancel' : 'Add lyrics'; if (o) $('#lyrIn').value = ''; };
+$('#lyrSave').onclick = () => {
+  const t = queue[idx], v = $('#lyrIn').value.trim(); if (!t || !v) return;
+  localStorage.setItem('vybe.lyr.' + (t.id || t.title), v); $('#lyr').textContent = v; $('#lyrEd').hidden = true; $('#addLyr').textContent = 'Add lyrics';
+};
+
 function renderLibrary() {
   renderList($('#liked'), liked);
   if (!liked.length) $('#liked').append(el('p', 'muted', 'Tap ♡ on any song to keep it here.'));
   renderList($('#local'), local);
-  if (!local.length) $('#local').append(el('p', 'muted', 'Add music from your phone. It plays here and is cleared when you close the tab.'));
+  if (!local.length) $('#local').append(el('p', 'muted', 'Add songs from your phone. They are saved in VYBE and can be downloaded again with ⬇.'));
 }
-$('#file').onchange = e => {
-  [...e.target.files].forEach(f => local.push({ src: 'local', title: f.name.replace(/\.[^.]+$/, ''), sub: 'On this device', url: URL.createObjectURL(f) }));
+$('#file').onchange = async e => {
+  for (const f of e.target.files) {
+    const rec = { id: 'l' + Date.now() + Math.random().toString(36).slice(2, 6), name: f.name.replace(/\.[^.]+$/, ''), fileName: f.name, blob: f };
+    await tx('readwrite', s => s.put(rec)); local.push(toLocal(rec));
+  }
   renderLibrary();
 };
 
-async function loadArtists() {
+async function loadHome() {
   try {
-    const d = await dz('/chart/0/artists?limit=40');
-    d.data.forEach((x, n) => {
-      const go = () => search(x.name);
-      if (n < 12) $('#chart').append(card(x.picture_medium, x.name, go));
-      $('#artistGrid').append(card(x.picture_medium, x.name, go));
-    });
-  } catch { $('#chart').append(el('p', 'muted', 'Could not load artists. Check your connection.')); }
+    const [tr, ar] = await Promise.all([dz('/chart/0/tracks?limit=12'), dz('/chart/0/artists?limit=40')]);
+    top = tr.data.map(x => ({ src: 'q', q: x.artist.name + ' ' + x.title + ' official audio', title: x.title, sub: x.artist.name, thumb: x.album.cover_big || x.album.cover_medium }));
+    renderList($('#top'), top);
+    ar.data.forEach((x, n) => { const go = () => search(x.name); if (n < 12) $('#chart').append(card(x.picture_medium, x.name, go)); $('#artistGrid').append(card(x.picture_medium, x.name, go)); });
+  } catch { $('#top').append(el('p', 'muted', 'Could not load trending music. Check your connection.')); }
 }
 
+const sheet = on => { $('#sheet').classList.toggle('on', on); $('#stage').classList.toggle('full', on); };
+const act = {
+  pp: toggle, next: () => step(1), prev: () => step(-1), open: () => sheet(true), close: () => sheet(false),
+  shuf: () => { shuf = !shuf; $$('[data-act=shuf]').forEach(b => b.classList.toggle('on', shuf)); },
+  like: () => { const t = queue[idx]; if (t) toggleLike(t); }
+};
+$$('[data-act]').forEach(b => b.onclick = e => { e.stopPropagation(); act[b.dataset.act](); });
 $('#sf').onsubmit = e => { e.preventDefault(); search($('#q').value); };
 $('#kf').onsubmit = e => { e.preventDefault(); key = $('#key').value.trim(); store.set('vybe.key', key); $('#keybox').hidden = !!key; if ($('#q').value) search($('#q').value); };
-document.querySelectorAll('nav button').forEach(b => b.onclick = () => show(b.dataset.v));
-document.querySelectorAll('.chips button').forEach(b => b.onclick = () => search(b.dataset.q));
-$('#pp').onclick = toggle; $('#next').onclick = () => step(1); $('#prev').onclick = () => step(-1);
-$('#shuf').onclick = () => { shuf = !shuf; $('#shuf').classList.toggle('on', shuf); };
-$('#like').onclick = () => { const t = queue[idx]; if (t) toggleLike(t); };
-loadArtists();
+$$('nav button').forEach(b => b.onclick = () => { sheet(false); show(b.dataset.v); });
+$$('.moods button').forEach(b => b.onclick = () => search(b.dataset.q));
+$('#heroPlay').onclick = () => { if (top.length) play([...top].sort(() => Math.random() - .5), 0); };
+loadLocal(); loadHome();

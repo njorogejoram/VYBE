@@ -1,17 +1,17 @@
-# VYBE 5.1
+# VYBE 5.2
 
-Music app that searches YouTube and plays full songs through the official YouTube embedded player.
-Artist pictures and album covers come from the Deezer API.
+Music app that searches YouTube and plays full songs inside VYBE's own player screen.
+Charts, artist pictures and album covers come from Deezer. Lyrics come from lyrics.ovh.
 
 ## Set up
-1. Create a YouTube Data API v3 key in Google Cloud Console.
-2. Open the app, go to Explore, paste the key and tap Save key. It stays in your browser only.
-3. Search a song, tap it to play. Tap the heart to keep it in Library.
+1. Create a YouTube Data API v3 key in Google Cloud Console and restrict it to your site address.
+2. Open the app, go to Explore, paste the key and tap Save key (stored only in your browser).
+3. Tap a song to play. Tap the player bar to open the full player with lyrics.
 
 ## Notes
-- The YouTube player must stay visible (YouTube's terms). It sits above the player bar.
-- Songs from YouTube cannot be downloaded for offline use. "On this device" plays your own audio files.
-- Restrict your API key to your site address in Google Cloud Console (HTTP referrers).
+- YouTube's terms require its player to stay visible, so VYBE shows it inside the player screen (and as a small card above the bar).
+- Songs from YouTube cannot be downloaded. Music you add under Library > On this device is saved in the browser and can be downloaded again.
+- Each trending-song tap uses one YouTube search (100 of your 10,000 free daily quota units).
 
 ## Publish on GitHub Pages
-Upload these files to your repo, then Settings > Pages > Deploy from branch > main.
+Upload index.html, style.css, app.js (and README.md) to the root of your repo.
