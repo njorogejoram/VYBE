@@ -3,7 +3,7 @@ const el = (t, c, x) => { const e = document.createElement(t); if (c) e.classNam
 const store = { get: (k, d) => { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } }, set: (k, v) => localStorage.setItem(k, JSON.stringify(v)) };
 let key = store.get('vybe.key', ''), liked = store.get('vybe.liked', []), hist = store.get('vybe.hist', []), ids = store.get('vybe.ids', {});
 let prev = 'home', cur = 'home', dcol = [];
-let queue = [], idx = -1, shuf = false, yt = null, ytReady = false, pending = null, local = [], top = [];
+let queue = [], idx = -1, shuf = false, yt = null, ytReady = false, pending = null, local = [], trend = [];
 const audio = new Audio();
 const decode = s => { const t = document.createElement('textarea'); t.innerHTML = s; return t.value; };
 const fmt = s => { s = Math.max(0, Math.floor(s || 0)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
@@ -105,7 +105,7 @@ async function search(q) {
 function paint(t) {
   $('#t').textContent = $('#t2').textContent = t.title;
   $('#s').textContent = $('#s2').textContent = t.sub;
-  $('#art').src = t.thumb || '';
+  $('#art').src = $('#bigart').src = t.thumb || '';
   $('#ambient').style.backgroundImage = t.thumb ? `url("${t.thumb}")` : '';
   $('#ambient').classList.toggle('art', !!t.thumb);
   $('#addLyr').textContent = 'Add lyrics'; $('#lyrEd').hidden = true;
@@ -195,7 +195,7 @@ $('#file').onchange = async e => {
   renderLibrary();
 };
 
-const GENRES = [['Afrobeats', 2, '#16a34a,#a3e635'], ['R&B', 165, '#7c3aed,#f472b6'], ['Hip-Hop', 116, '#dc2626,#facc15'], ['Pop', 132, '#db2777,#fb923c'], ['Dance', 113, '#4f46e5,#c026d3'], ['Electro', 106, '#0891b2,#22d3ee'], ['Jazz', 129, '#b45309,#fbbf24'], ['Rock', 152, '#334155,#ef4444']];
+const GENRES = [['Afrobeats', 2, '#ff7a45,#ff2a85'], ['R&B', 165, '#ff2a85,#7000ff'], ['Hip-Hop', 116, '#7000ff,#2a4bff'], ['Pop', 132, '#ff5fa8,#b44dff'], ['Dance', 113, '#2a4bff,#00b4d8'], ['Electro', 106, '#5a2bff,#ff2a85'], ['Jazz', 129, '#c2410c,#7000ff'], ['Rock', 152, '#1f2438,#ff2a85']];
 const toTrack = (x, img) => ({ src: 'q', q: x.artist.name + ' ' + x.title + ' official audio', title: x.title, sub: x.artist.name, thumb: img || x.album?.cover_big || x.album?.cover_medium });
 async function loadCol(kind, id, img) {
   const p = { playlist: `/playlist/${id}/tracks?limit=50`, album: `/album/${id}/tracks?limit=50`, artist: `/artist/${id}/top?limit=30`, genre: `/chart/${id}/tracks?limit=30` }[kind];
@@ -222,7 +222,7 @@ async function loadHome() {
   GENRES.forEach(([n, id, g]) => { const b = el('button', '', n); b.style.setProperty('--g', g); b.onclick = () => openCol('genre', id, n, 'Trending in ' + n); $('#moods').append(b); });
   renderRecent();
   const [tr, ar, pl, al] = await Promise.allSettled([dz('/chart/0/tracks?limit=12'), dz('/chart/0/artists?limit=40'), dz('/chart/0/playlists?limit=12'), dz('/chart/0/albums?limit=12')]);
-  if (tr.value) { top = tr.value.data.map(x => toTrack(x)); renderList($('#top'), top); } else $('#top').append(el('p', 'muted', 'Could not load trending music. Check your connection.'));
+  if (tr.value) { trend = tr.value.data.map(x => toTrack(x)); renderList($('#top'), trend); } else $('#top').append(el('p', 'muted', 'Could not load trending music. Check your connection.'));
   (pl.value?.data || []).forEach(x => $('#pls').append(card(x.picture_big, x.title, (x.nb_tracks || '') + ' songs', () => openCol('playlist', x.id, x.title, x.user?.name || 'Playlist', x.picture_big), () => playOnly('playlist', x.id))));
   (al.value?.data || []).forEach(x => $('#albs').append(card(x.cover_big, x.title, x.artist.name, () => openCol('album', x.id, x.title, x.artist.name, x.cover_big), () => playOnly('album', x.id, x.cover_big))));
   (ar.value?.data || []).forEach((x, n) => {
@@ -244,5 +244,5 @@ $$('[data-act]').forEach(b => b.onclick = e => { e.stopPropagation(); act[b.data
 $('#sf').onsubmit = e => { e.preventDefault(); search($('#q').value); };
 $('#kf').onsubmit = e => { e.preventDefault(); key = $('#key').value.trim(); store.set('vybe.key', key); $('#keybox').hidden = !!key; if ($('#q').value) search($('#q').value); };
 $$('nav button').forEach(b => b.onclick = () => { sheet(false); show(b.dataset.v); });
-$('#heroPlay').onclick = () => { if (top.length) play(mix(top), 0); };
+$('#heroPlay').onclick = () => { if (trend.length) play(mix(trend), 0); };
 loadLocal(); loadHome();
