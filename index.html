@@ -4,10 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0a0d1a">
-<title>VYBE 6.0</title>
+<title>VYBE 6.3</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=6.0">
+<link rel="stylesheet" href="style.css?v=6.3">
 </head>
 <body>
 <div id="ambient"></div>
@@ -46,14 +46,15 @@
     <label class="btn">Add music<input id="file" type="file" accept="audio/*" multiple hidden></label>
     <div id="local"></div>
   </section>
+  <section id="mystats" class="view"><h3>Listening stats</h3><div id="statsBody"></div></section>
   <section id="settings" class="view"><h3>Settings</h3>
     <div class="glass box"><b>Theme</b><div class="seg" id="themeSeg"><button data-t="dark">Dark</button><button data-t="light">Light</button><button data-t="auto">Auto</button></div></div>
-    <div class="glass box"><b>Listening stats</b><div id="stats"></div></div>
-    <div class="glass box"><b>Keys &amp; data</b><div class="seg"><button id="rmKey">Remove YouTube key</button><button id="rmJ">Remove Jamendo ID</button><button id="rmStats">Clear history &amp; stats</button></div></div>
+        <div class="glass box"><b>Keys &amp; data</b><div class="seg"><button id="rmKey">Remove YouTube key</button><button id="rmJ">Remove Jamendo ID</button><button id="rmStats">Clear history &amp; stats</button></div></div>
+    <p class="muted" id="ver">VYBE 6.3</p>
     <p class="muted">Coming next: Spotify login, equalizer, app icons. The equalizer can't change YouTube audio because the browser has no access to it.</p>
   </section>
 </main>
-<div id="stage"><div id="yt"></div></div>
+<div id="stage"><div id="yt"></div><button id="stageTap" aria-label="Open player"></button></div>
 <div id="bar" class="glass" data-act="open">
   <div id="pg"></div>
   <img id="art" alt=""><div class="meta"><b id="t">Choose a track</b><small id="s">Search to start listening</small></div>
@@ -68,21 +69,26 @@
     <div class="ctl2"><button data-act="prev" aria-label="Previous"><svg viewBox="0 0 24 24" aria-hidden="true" class="flip"><path d="M5 6.2v11.6a.9.9 0 0 0 1.4.75l8-5.8a.9.9 0 0 0 0-1.5l-8-5.8A.9.9 0 0 0 5 6.2z" fill="currentColor"/><rect x="16" y="5.5" width="2.8" height="13" rx="1.2" fill="currentColor"/></svg></button><button data-act="pp" class="main" aria-label="Play or pause"><svg viewBox="0 0 24 24" aria-hidden="true" class="ip"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z" fill="currentColor"/></svg><svg viewBox="0 0 24 24" aria-hidden="true" class="ia"><rect x="6.5" y="5" width="4" height="14" rx="1.4" fill="currentColor"/><rect x="13.5" y="5" width="4" height="14" rx="1.4" fill="currentColor"/></svg></button><button data-act="next" aria-label="Next"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 6.2v11.6a.9.9 0 0 0 1.4.75l8-5.8a.9.9 0 0 0 0-1.5l-8-5.8A.9.9 0 0 0 5 6.2z" fill="currentColor"/><rect x="16" y="5.5" width="2.8" height="13" rx="1.2" fill="currentColor"/></svg></button></div>
     <div class="vol"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5v5h3.5l4.5 4v-13l-4.5 4z" fill="currentColor"/></svg><input id="vol" type="range" min="0" max="1" step="0.01" value="1" aria-label="Volume"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5v5h3.5l4.5 4v-13l-4.5 4z" fill="currentColor"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
     <div class="bot"><button data-act="shuf" aria-label="Shuffle"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h3.5c2 0 3.2 1 4.3 2.6l2.4 3.8c1.1 1.6 2.3 2.6 4.3 2.6H21M3 17h3.5c2 0 3.2-1 4.3-2.6M13.2 10.6C14.3 9 15.5 8 17.5 8H21M18.5 5.5 21 8l-2.5 2.5M18.5 13.5 21 16l-2.5 2.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button id="lyrTog" class="on" aria-label="Lyrics"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5h14a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1h-7l-4.5 3.5V16H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 9h8M8 12h5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button id="qTog" aria-label="Queue"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6.5h12M4 12h12M4 17.5h6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M16.5 14.5v6l5-3z" fill="currentColor"/></svg></button></div>
-    <div id="qbox" class="glass box" hidden><b>Up next</b><div id="qlist"></div></div>
+    
     <div class="glass lyrbox">
-      <div class="lh"><b>Lyrics</b><button id="addLyr">Add lyrics</button></div>
+      <div class="lh">
+        <div class="lhead"><img id="lart" alt=""><div class="lt"><b id="lt">Lyrics</b><small id="ls" class="muted"></small></div></div>
+        <div class="lbtns"><button id="addLyr">Add lyrics</button><button id="lyrFull" class="lf" aria-label="Full screen lyrics"><svg class="ex" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><svg class="co" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
+      </div>
       <div id="lyr">Lyrics will appear here.</div>
-      <div class="nudge"><button id="nEarly">Earlier</button><span>Lyric timing</span><button id="nLate">Later</button></div>
+      <div id="lbar"><input id="lsk" type="range" min="0" max="100" step="0.1" value="0" aria-label="Seek"><div class="lrow"><button data-act="prev" class="bp" aria-label="Previous"><svg viewBox="0 0 24 24" aria-hidden="true" class="flip"><path d="M5 6.2v11.6a.9.9 0 0 0 1.4.75l8-5.8a.9.9 0 0 0 0-1.5l-8-5.8A.9.9 0 0 0 5 6.2z" fill="currentColor"/><rect x="16" y="5.5" width="2.8" height="13" rx="1.2" fill="currentColor"/></svg></button><button data-act="pp" class="bp" aria-label="Play or pause"><svg viewBox="0 0 24 24" aria-hidden="true" class="ip"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z" fill="currentColor"/></svg><svg viewBox="0 0 24 24" aria-hidden="true" class="ia"><rect x="6.5" y="5" width="4" height="14" rx="1.4" fill="currentColor"/><rect x="13.5" y="5" width="4" height="14" rx="1.4" fill="currentColor"/></svg></button><button data-act="next" class="bp" aria-label="Next"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 6.2v11.6a.9.9 0 0 0 1.4.75l8-5.8a.9.9 0 0 0 0-1.5l-8-5.8A.9.9 0 0 0 5 6.2z" fill="currentColor"/><rect x="16" y="5.5" width="2.8" height="13" rx="1.2" fill="currentColor"/></svg></button></div></div>
       <small id="hint" class="muted" hidden>Tap the line you hear to sync lyrics with the preview.</small>
       <div id="lyrEd" hidden><textarea id="lyrIn" placeholder="Paste lyrics (plain or .lrc with timestamps)"></textarea><button id="lyrSave">Save lyrics</button></div>
     </div>
   </div>
 </div>
+<div id="qback"></div>
+<div id="qsheet"><div class="qgrab"></div><div class="qhead"><h3>Up next</h3><button id="qclear" class="ghost">Clear</button></div><div class="qlabel">Now playing</div><div id="qnow"></div><div class="qlabel">Next</div><div id="qlist"></div></div>
 <nav class="glass"><i id="thumb"></i>
   <button data-v="home" class="on">Home</button><button data-v="explore">Explore</button>
-  <button data-v="artists">Artists</button><button data-v="library">Library</button>
+  <button data-v="artists">Artists</button><button data-v="library">Library</button><button data-v="mystats">Stats</button>
 </nav>
-<script src="app.js?v=6.0"></script>
+<script src="app.js?v=6.3"></script>
 <script src="https://www.youtube.com/iframe_api" async></script>
 </body>
 </html>
