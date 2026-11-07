@@ -1,193 +1,65 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#101116">
-  <title>VYBE 4.0 — YouTube Edition</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#101116">
+<title>VYBE 5.1</title>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="app-shell">
-    <aside class="sidebar glass">
-      <a class="brand" href="#" aria-label="VYBE home"><span class="brand-mark">V</span><span>VYBE<span class="brand-dot">.</span></span></a>
-      <div class="side-label">MENU</div>
-      <nav class="main-nav">
-        <button class="nav-item active" data-view="home"><span>⌂</span> Home</button>
-        <button class="nav-item" data-view="explore"><span>⌕</span> Explore</button>
-        <button class="nav-item" data-view="artists"><span>◉</span> Artists</button>
-        <button class="nav-item" data-view="library"><span>▤</span> Your library</button>
-      </nav>
-      <div class="side-label library-label">YOUR COLLECTION <button id="newPlaylist" class="tiny-plus" title="Create playlist">+</button></div>
-      <div id="playlistNav" class="playlist-nav"><p class="muted small">Your playlists will appear here.</p></div>
-      <div class="sidebar-bottom">
-        <div class="upgrade-card">
-          <span class="upgrade-icon">✦</span>
-          <strong>Your sound. Your space.</strong>
-          <p>Build a library that feels like yours.</p>
-          <button id="addMusicSide" class="outline-btn">Add your music</button>
-        </div>
-        <div class="profile-row"><div class="avatar">J</div><div><strong>Listener</strong><span class="muted small">VYBE member</span></div><span class="profile-more">•••</span></div>
-      </div>
-    </aside>
-
-    <main class="main-area">
-      <header class="topbar">
-        <div class="mobile-brand"><span class="brand-mark">V</span> VYBE<span class="brand-dot">.</span></div>
-        <div class="back-forward"><button aria-label="Back" id="goBack">‹</button><button aria-label="Forward" id="goForward">›</button></div>
-        <label class="search-wrap"><span>⌕</span><input id="globalSearch" type="search" placeholder="Search songs, artists..." autocomplete="off"><kbd>⌘ K</kbd></label>
-        <button class="icon-button upload-top" id="addMusicTop" title="Add music">＋</button>
-        <input id="audioFiles" type="file" accept="audio/*" multiple hidden>
-      </header>
-
-      <section id="homeView" class="view active-view home-dashboard">
-        <div class="welcome-row home-welcome">
-          <div><p class="eyebrow">YOUR SOUND, YOUR UNIVERSE</p><h1>Feel every <span class="gradient-text">frequency.</span></h1><p class="subheading">Discover something new. Stay for the feeling.</p></div>
-          <div class="date-pill"><span class="live-dot"></span> AURORA EXPERIENCE</div>
-        </div>
-
-        <button class="aurora-feature" data-go="explore">
-          <span class="aurora-orb orb-one"></span><span class="aurora-orb orb-two"></span>
-          <span class="feature-kicker">MADE FOR YOUR NEXT OBSESSION</span>
-          <strong>Find your<br><em>next favourite.</em></strong>
-          <span class="feature-cta">Explore music <b>↗</b></span>
-          <span class="feature-note">SONGS · ARTISTS · ALBUMS</span>
-        </button>
-        <div class="quick-grid" aria-label="Quick access">
-          <button class="quick-tile quick-library" data-go="library"><span class="quick-icon">♫</span><span><b>Your library</b><small>All your music</small></span><span class="quick-arrow">↗</span></button>
-          <button class="quick-tile quick-liked" data-filter="liked" data-go="library"><span class="quick-icon">♥</span><span><b>Liked songs</b><small>Your favourites</small></span><span class="quick-arrow">↗</span></button>
-          <button class="quick-tile quick-explore" data-go="explore"><span class="quick-icon">⌕</span><span><b>Explore</b><small>Find your next sound</small></span><span class="quick-arrow">↗</span></button>
-          <button class="quick-tile quick-artists" data-go="artists"><span class="quick-icon">◉</span><span><b>Artists</b><small>People behind the music</small></span><span class="quick-arrow">↗</span></button>
-        </div>
-
-        <div class="section-heading home-section-heading"><div><p class="eyebrow">THE BIG NAMES</p><h2>Popular artists</h2></div><button class="text-btn" data-go="artists">Explore artists <span>→</span></button></div>
-        <div id="featuredArtistGrid" class="featured-artist-grid"></div>
-
-        <div class="section-heading home-section-heading"><div><p class="eyebrow">BACK INTO THE FLOW</p><h2>Recently added</h2></div><button class="text-btn" data-go="library">Show all <span>→</span></button></div>
-        <div id="recentTracks" class="track-grid empty-state"><div class="empty-icon">♫</div><h3>Your rotation starts here.</h3><p>Add music from your device and your tracks will appear here.</p><button class="secondary-btn" id="emptyAdd">＋ Add music</button></div>
-
-        <div class="section-heading home-section-heading"><div><p class="eyebrow">SET THE TONE</p><h2>Find your mood</h2></div></div>
-        <div class="mood-grid home-moods">
-          <button class="mood-card mood-night" data-mood="Night Drive"><span>☾</span><b>Night drive</b><small>After-hours energy</small></button>
-          <button class="mood-card mood-focus" data-mood="Deep Focus"><span>◈</span><b>Deep focus</b><small>Stay in your zone</small></button>
-          <button class="mood-card mood-chill" data-mood="Slow Down"><span>〰</span><b>Slow down</b><small>Take a softer pace</small></button>
-          <button class="mood-card mood-energy" data-mood="High Energy"><span>✳</span><b>High energy</b><small>Turn the moment up</small></button>
-        </div>
-
-        <div class="section-heading home-section-heading"><div><p class="eyebrow">MADE BY YOU</p><h2>Your playlists</h2></div><button class="text-btn" id="homeNewPlaylist">＋ Create</button></div>
-        <div id="homePlaylists" class="playlist-grid"><div class="playlist-placeholder">Create a playlist to start collecting your favourite tracks.</div></div>
-      </section>
-
-      <section id="exploreView" class="view">
-        <div class="page-heading"><p class="eyebrow">THE WORLD IS YOUR PLAYLIST</p><h1>Explore <span class="gradient-text">everything.</span></h1><p class="subheading">Search songs, artists and albums from the online catalogue.</p></div>
-        <div class="explore-search"><span>⌕</span><input id="exploreSearch" type="search" placeholder="Search songs, artists..."></div>
-        <div class="online-tabs" id="onlineTabs">
-          <button class="online-tab active" data-kind="song">Songs</button>
-          <button class="online-tab" data-kind="musicArtist">Artists</button>
-          <button class="online-tab" data-kind="album">Albums</button>
-          <button class="online-tab" data-kind="playlist">Playlists</button>
-        </div>
-        <section class="youtube-key-panel" id="youtubeKeyPanel" aria-label="Connect YouTube search">
-          <div><strong>Connect YouTube search</strong><p>Create a YouTube Data API v3 key in Google Cloud Console, then paste it here. Your key is saved only in this browser.</p><small id="youtubeKeyStatus">YouTube is not connected yet.</small></div>
-          <div class="youtube-key-controls"><input id="youtubeApiKey" type="password" placeholder="Paste YouTube API key" autocomplete="off" aria-label="YouTube API key"><button class="primary-btn" id="saveYoutubeKey" type="button">Save key</button></div>
-        </section>
-        <div class="online-heading"><div><p class="eyebrow">VYBE ONLINE</p><h2 id="onlineTitle">Search YouTube music</h2></div><span class="online-status"><i></i> LIVE SEARCH</span></div>
-        <div id="onlineResults" class="online-results"><div class="online-empty"><span>✦</span><strong>Your next sound is out there.</strong><p>Type a song, artist or album to explore the catalogue.</p></div></div>
-        <div class="section-heading"><div><p class="eyebrow">ON THIS DEVICE</p><h2>Your collection</h2></div></div>
-        <div class="section-heading"><div><p class="eyebrow">BROWSE BY FEELING</p><h2>Choose a lane</h2></div></div>
-        <div class="genre-grid">
-          <button data-mood="R&B" class="genre genre-rnb">R&B <span>01</span></button><button data-mood="Hip-Hop" class="genre genre-hip">Hip-hop <span>02</span></button><button data-mood="Afrobeats" class="genre genre-afro">Afrobeats <span>03</span></button><button data-mood="Electronic" class="genre genre-electro">Electronic <span>04</span></button><button data-mood="Indie" class="genre genre-indie">Indie <span>05</span></button><button data-mood="Jazz" class="genre genre-jazz">Jazz <span>06</span></button>
-        </div>
-        <div class="section-heading"><div><p class="eyebrow">IN YOUR LIBRARY</p><h2>Search results</h2></div></div>
-        <div id="exploreResults" class="track-list"><p class="muted">Add music, then search by song, artist or album.</p></div>
-      </section>
-
-      <section id="artistsView" class="view">
-        <div class="page-heading"><p class="eyebrow">THE PEOPLE BEHIND THE SOUND</p><h1>Artist <span class="gradient-text">spotlight.</span></h1><p class="subheading">Popular picks first, then the artists in your collection.</p></div>
-        <div id="artistGrid" class="artist-grid empty-state"><div class="empty-icon">◉</div><h3>Your artists will show up here.</h3><p>Add tracks with artist information to discover them here.</p></div>
-      </section>
-
-      <section id="libraryView" class="view">
-        <div class="page-heading"><p class="eyebrow">ALL YOUR FAVOURITES, TOGETHER</p><h1>Your <span class="gradient-text">library.</span></h1><p class="subheading">The music you bring. The memories you make.</p></div>
-        <div class="library-tabs"><button class="tab active" data-filter="all">All tracks</button><button class="tab" data-filter="liked">Liked songs ♥</button></div>
-        <div id="libraryTracks" class="track-list"><p class="muted">Your library is waiting for its first track.</p></div>
-      </section>
-
-      <section id="playlistView" class="view">
-        <button class="back-link" id="playlistBack">← Your library</button>
-        <div id="playlistDetail"></div>
-      </section>
-    </main>
-  </div>
-
-  <nav class="mobile-nav glass" aria-label="Mobile navigation">
-    <button class="mobile-nav-item active" data-view="home"><span>⌂</span><small>Home</small></button>
-    <button class="mobile-nav-item" data-view="explore"><span>⌕</span><small>Explore</small></button>
-    <button class="mobile-nav-item" data-view="artists"><span>◉</span><small>Artists</small></button>
-    <button class="mobile-nav-item" data-view="library"><span>▤</span><small>Library</small></button>
-  </nav>
-  <div id="playerBar" class="player-bar glass">
-    <div class="now-playing">
-      <button id="miniCover" class="mini-cover" aria-label="Open full player">♫</button><div class="now-meta"><strong id="nowTitle">Choose a track</strong><span id="nowArtist">Your music will sound right at home.</span></div><button id="likeCurrent" class="like-btn" title="Like track">♡</button>
+<header>
+  <h1>VYBE.</h1>
+  <form id="sf"><input id="q" type="search" placeholder="Search songs, artists, albums" aria-label="Search music"><button>Search</button></form>
+</header>
+<main>
+  <section id="home" class="view on">
+    <h2>Popular artists</h2><div id="chart" class="row"></div>
+    <h2>Find your mood</h2>
+    <div class="chips">
+      <button data-q="night drive playlist">Night drive</button>
+      <button data-q="deep focus music">Deep focus</button>
+      <button data-q="slow chill songs">Slow down</button>
+      <button data-q="high energy workout songs">High energy</button>
+      <button data-q="afrobeats hits">Afrobeats</button>
+      <button data-q="r&b hits">R&amp;B</button>
     </div>
-    <div class="player-controls">
-      <div class="control-buttons"><button id="shuffleBtn" class="sub-control" title="Shuffle">⤨</button><button id="prevBtn" title="Previous">|‹</button><button id="playBtn" class="play-main" title="Play">▶</button><button id="nextBtn" title="Next">›|</button><button id="repeatBtn" class="sub-control" title="Repeat">↻</button></div>
-      <div class="progress-row"><span id="currentTime">0:00</span><input id="progress" type="range" min="0" max="100" value="0"><span id="duration">0:00</span></div>
+  </section>
+  <section id="explore" class="view">
+    <div id="keybox" class="box" hidden>
+      <b>Connect YouTube search</b>
+      <p>Paste a YouTube Data API v3 key from Google Cloud Console. It is saved only in this browser.</p>
+      <form id="kf"><input id="key" placeholder="API key"><button>Save key</button></form>
     </div>
-    <div class="player-extra"><button id="lyricsBtn" class="lyrics-toggle">▤ <span>Lyrics</span></button><button id="queueBtn" class="sub-control" title="Queue">☷</button><span class="volume-icon">◖</span><input id="volume" type="range" min="0" max="1" step="0.01" value="0.8"></div>
+    <p id="msg" class="muted"></p>
+    <div id="artistsHit" class="row"></div>
+    <div id="albumsHit" class="row"></div>
+    <div id="songs"></div>
+  </section>
+  <section id="artists" class="view"><h2>Artists</h2><div id="artistGrid" class="grid"></div></section>
+  <section id="library" class="view">
+    <h2>Liked songs</h2><div id="liked"></div>
+    <h2>On this device</h2>
+    <label class="btn">Add music<input id="file" type="file" accept="audio/*" multiple hidden></label>
+    <div id="local"></div>
+  </section>
+</main>
+<div id="stage"><div id="yt"></div></div>
+<div id="bar">
+  <img id="art" alt="">
+  <div class="meta"><b id="t">Choose a track</b><small id="s">Search to start listening</small></div>
+  <div class="ctl">
+    <button id="shuf" title="Shuffle">⤨</button><button id="prev" title="Previous">⏮</button>
+    <button id="pp" title="Play or pause">▶</button><button id="next" title="Next">⏭</button>
+    <button id="like" title="Like">♡</button>
   </div>
-
-  <div id="lyricsPanel" class="side-panel glass"><div class="panel-head"><div><p class="eyebrow">SING ALONG</p><h2>Lyrics</h2></div><button class="close-panel" data-close="lyricsPanel">×</button></div><div id="lyricsContent" class="lyrics-content"><div class="lyrics-symbol">♫</div><h3>Let the words find you.</h3><p>Add lyrics for your own tracks using the track details.</p></div></div>
-  <div id="queuePanel" class="side-panel glass"><div class="panel-head"><div><p class="eyebrow">UP NEXT</p><h2>Your queue</h2></div><button class="close-panel" data-close="queuePanel">×</button></div><div id="queueContent" class="queue-content"></div></div>
-  <div id="nowPlaying" class="now-playing-overlay">
-    <div class="player-backdrop" id="playerBackdrop" aria-hidden="true"></div>
-    <div class="now-playing-window glass">
-      <div class="player-topline">
-        <span class="player-source">PLAYING IN <b>VYBE</b></span>
-        <button id="closeNowPlaying" class="player-close" aria-label="Close player">⌄</button>
-      </div>
-      <div class="player-art-stage">
-        <div id="largeCover" class="large-cover">♫</div>
-        <div id="youtubeFrameWrap" class="youtube-frame-wrap" hidden></div>
-      </div>
-      <div class="large-track-meta">
-        <div class="player-track-copy">
-          <span class="player-overline">NOW PLAYING</span>
-          <h2 id="largeTitle">Choose a track</h2>
-          <p id="largeArtist">Your music will sound right at home.</p>
-        </div>
-        <button id="largeLike" class="player-round-action" aria-label="Like track">♡</button>
-        <button id="largeMore" class="player-round-action" aria-label="Track details">•••</button>
-      </div>
-      <button id="lyricPeek" class="lyric-peek" title="Open lyrics">
-        <span id="lyricPeekText">Lyrics will appear here when available.</span><b>›</b>
-      </button>
-      <div class="large-progress">
-        <input id="largeProgress" type="range" min="0" max="100" value="0" aria-label="Track progress">
-        <div class="player-time-row"><span id="largeCurrentTime">0:00</span><span id="largeDuration">0:00</span></div>
-      </div>
-      <div class="large-controls">
-        <button id="largeShuffle" class="player-secondary" aria-label="Shuffle">⤨</button>
-        <button id="largePrev" aria-label="Previous track">|◀</button>
-        <button id="largePlay" class="large-play" aria-label="Play or pause">▶</button>
-        <button id="largeNext" aria-label="Next track">▶|</button>
-        <button id="largeRepeat" class="player-secondary" aria-label="Repeat">↻</button>
-      </div>
-      <div class="player-volume">
-        <span>◖</span><input id="largeVolume" type="range" min="0" max="1" step="0.01" value="0.8" aria-label="Volume"><span>◗</span>
-      </div>
-      <div class="player-utility-row">
-        <button id="largeLyrics" aria-label="Lyrics"><span>▤</span><small>Lyrics</small></button>
-        <button id="largeQueue" aria-label="Queue"><span>☷</span><small>Queue</small></button>
-        <button id="largeDevice" aria-label="Playback source"><span>◉</span><small>On this device</small></button>
-      </div>
-    </div>
-  </div>
-  <div id="toast" class="toast"></div>
-  <audio id="audio"></audio>
-  <script src="script.js"></script>
+  <div class="seek"><span id="cu">0:00</span><input id="sk" type="range" min="0" max="100" value="0"><span id="du">0:00</span></div>
+</div>
+<nav>
+  <button data-v="home" class="on">Home</button><button data-v="explore">Explore</button>
+  <button data-v="artists">Artists</button><button data-v="library">Library</button>
+</nav>
+<script src="app.js"></script>
+<script src="https://www.youtube.com/iframe_api" async></script>
 </body>
 </html>
