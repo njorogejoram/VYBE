@@ -1,10 +1,11 @@
 const $ = s => document.querySelector(s), $$ = s => document.querySelectorAll(s);
 const el = (t, c, x) => { const e = document.createElement(t); if (c) e.className = c; if (x != null) e.textContent = x; return e; };
 const store = { get: (k, d) => { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } }, set: (k, v) => localStorage.setItem(k, JSON.stringify(v)) };
-const keep = t => t.src === 'dz' && t.preview;
-let liked = store.get('vybe.liked', []).filter(keep), hist = store.get('vybe.hist', []).filter(keep);
+const keep = t => t.src === 'dz' || t.src === 'jm';
+let key = store.get('vybe.key', ''), liked = store.get('vybe.liked', []).filter(keep), hist = store.get('vybe.hist', []).filter(keep);
 let prev = 'home', cur = 'home', dcol = [], extra = [], artTk = 0;
-let queue = [], idx = -1, shuf = false, local = [], trend = [];
+let queue = [], idx = -1, shuf = false, local = [], trend = [], yt = null, ytReady = false, pending = null;
+const ids = store.get('vybe.ids', {}), cur_ = () => queue[idx] || {};
 const audio = new Audio();
 const decode = s => { const t = document.createElement('textarea'); t.innerHTML = s; return t.value; };
 const fmt = s => { s = Math.max(0, Math.floor(s || 0)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
@@ -34,6 +35,7 @@ function show(v) {
   $$('nav button').forEach(b => b.classList.toggle('on', b.dataset.v === v));
   if (v === 'library') renderLibrary();
   if (v === 'home') renderRecent();
+  if (v === 'settings') renderSettings();
   scrollTo(0, 0); moveThumb(v);
 }
 function card(img, title, sub, open, playFn, round) {
@@ -73,17 +75,52 @@ function trackRow(list, i) {
 const renderList = (box, list) => { box.replaceChildren(); list.forEach((_, i) => box.append(trackRow(list, i))); };
 
 const enc = encodeURIComponent;
+// Full songs: Jamendo (free, legal, needs a free client ID). Search can use YouTube; playback finds a full Jamendo stream, else a Deezer preview.
+let jkey = store.get('vybe.jkey', '');
+async function jam(path) {
+  if (!jkey) return null;
+  try { const d = await (await fetch('https://api.jamendo.com/v3.0/tracks/?client_id=' + enc(jkey) + '&format=json&audioformat=mp32&' + path)).json(); return d.results || null; } catch { return null; }
+}
+const toJm = x => ({ src: 'jm', id: 'j' + x.id, title: x.name, sub: x.artist_name, thumb: x.image, url: x.audio, dur: x.duration });
+const norm = s => clean(s).toLowerCase().replace(/[^a-z0-9 ]/g, '').trim();
+async function ytFind(q) {
+  if (ids[q]) return ids[q];
+  if (!key) { $('#keybox').hidden = false; return null; }
+  try {
+    const d = await (await fetch('https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&videoCategoryId=10&videoEmbeddable=true&maxResults=1&q=' + enc(q) + '&key=' + enc(key))).json();
+    const id = d.items?.[0]?.id.videoId || null; if (id) { ids[q] = id; store.set('vybe.ids', ids); } return id;
+  } catch { return null; }
+}
+async function resolve(t) {
+  if (t.url || t.src === 'local' || t.src === 'jm') return;
+  if (t.src === 'q') {
+    const { a, s } = parse(t);
+    try { const d = (await dz('/search?limit=1&q=' + enc(a + ' ' + s))).data[0];
+      if (d) Object.assign(t, { src: 'dz', id: d.id, title: d.title, sub: d.artist.name, preview: d.preview, dur: d.duration, thumb: d.album?.cover_big || t.thumb }); } catch {}
+  }
+  if (t.src !== 'dz') return;
+  if (t.yt === undefined) t.yt = await ytFind(t.sub + ' ' + t.title + ' official audio');
+  if (t.yt) return;
+  const d = await jam('limit=6&search=' + enc(t.sub + ' ' + t.title));
+  const m = (d || []).find(x => norm(x.name).includes(norm(t.title)) && (norm(x.artist_name).includes(norm(t.sub).split(' ')[0]) || Math.abs(x.duration - t.dur) < 4));
+  if (m) t.url = m.audio;
+}
 async function search(q) {
   q = q.trim(); if (!q) return;
-  show('explore'); $('#q').value = q;
-  ['#songs', '#artistsHit', '#albumsHit'].forEach(s => $(s).replaceChildren());
+  show('explore'); $('#q').value = q; $('#keybox').hidden = !!key; $('#jbox').hidden = !!jkey;
+  ['#songs', '#auSongs', '#artistsHit', '#albumsHit'].forEach(s => $(s).replaceChildren()); $('#auH').hidden = true;
   $('#msg').textContent = 'Searching…';
-  const [y, a, al] = await Promise.allSettled([dz('/search?limit=25&q=' + enc(q)), dz('/search/artist?limit=10&q=' + enc(q)), dz('/search/album?limit=10&q=' + enc(q))]);
+  const yts = key ? fetch('https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&videoCategoryId=10&maxResults=20&q=' + enc(q) + '&key=' + enc(key)).then(r => r.json()) : dz('/search?limit=25&q=' + enc(q));
+  const [y, a, al, f] = await Promise.allSettled([yts, dz('/search/artist?limit=10&q=' + enc(q)), dz('/search/album?limit=10&q=' + enc(q)), jam('limit=15&search=' + enc(q))]);
   (a.value?.data || []).forEach(x => $('#artistsHit').append(card(x.picture_big, x.name, 'Artist', () => openCol('artist', x.id, x.name, 'Top tracks', x.picture_big), () => playOnly('artist', x.id), true)));
   (al.value?.data || []).forEach(x => $('#albumsHit').append(card(x.cover_big, x.title, x.artist?.name, () => openCol('album', x.id, x.title, x.artist?.name, x.cover_big), () => playOnly('album', x.id, x.cover_big))));
-  const list = (y.value?.data || []).filter(x => x.preview).map(x => toTrack(x));
+  const d = y.value;
+  const list = key ? (d?.items || []).map(v => ({ src: 'q', id: 'y' + v.id.videoId, yt: v.id.videoId, title: decode(v.snippet.title), sub: decode(v.snippet.channelTitle), thumb: v.snippet.thumbnails.medium?.url }))
+                   : (d?.data || []).filter(x => x.preview).map(x => toTrack(x));
   if (list.length) { $('#msg').textContent = ''; renderList($('#songs'), list); }
-  else $('#msg').textContent = y.status === 'rejected' ? 'Could not search. Check your connection.' : 'No songs found. Try another search.';
+  else $('#msg').textContent = d?.error ? 'YouTube said: ' + d.error.message : 'No songs found. Try another search.';
+  const fl = (f.value || []).map(toJm);
+  if (fl.length) { $('#auH').hidden = false; renderList($('#auSongs'), fl); }
 }
 
 function paint(t) {
@@ -97,30 +134,58 @@ function paint(t) {
   $('#addLyr').textContent = 'Add lyrics'; $('#lyrEd').hidden = true;
   syncLike();
 }
-function play(list, i) {
-  queue = list; idx = i; const t = list[i]; t.retry = false; paint(t); loadLyrics(t); addHist(t);
-  audio.src = t.src === 'local' ? t.url : t.preview; audio.play().catch(() => {});
+async function play(list, i) {
+  queue = list; idx = i; const t = list[i]; paint(t); $('#srcbadge').textContent = 'Finding full song…';
+  await resolve(t); if (queue[idx] !== t) return;
+  const u = t.url || t.preview;
+  if (!t.yt && !u) { $('#srcbadge').textContent = 'No playable version found'; return; }
+  t.retry = false; t.viaYT = !!t.yt; paint(t); loadLyrics(t); addHist(t);
+  if (t.viaYT) {
+    audio.pause(); $('#stage').classList.add('on'); $('#srcbadge').textContent = 'Full song · YouTube';
+    if (ytReady) yt.loadVideoById(t.yt); else pending = t.yt;
+  } else {
+    if (ytReady) yt.pauseVideo(); $('#stage').classList.remove('on');
+    $('#srcbadge').textContent = t.url ? 'Full song' : '30s preview only';
+    audio.src = t.src === 'local' ? t.url : u; audio.play().catch(() => {});
+  }
 }
 function step(d) {
   if (!queue.length) return;
   play(queue, shuf ? Math.floor(Math.random() * queue.length) : (idx + d + queue.length) % queue.length);
 }
-function toggle() { if (!queue[idx]) return; audio.paused ? audio.play() : audio.pause(); }
-const setPP = on => { $$('[data-act=pp]').forEach(b => b.textContent = on ? '⏸' : '▶'); document.body.classList.toggle('playing', on); };
-audio.onplay = () => setPP(true); audio.onpause = () => setPP(false); audio.onended = () => step(1);
+function toggle() {
+  const t = queue[idx]; if (!t) return;
+  if (t.viaYT && ytReady) yt.getPlayerState() === 1 ? yt.pauseVideo() : yt.playVideo();
+  else audio.paused ? audio.play() : audio.pause();
+}
+const setPP = on => { $$('[data-act=pp]').forEach(b => b.textContent = on ? '⏸\uFE0E' : '▶\uFE0E'); document.body.classList.toggle('playing', on); };
+audio.onplay = () => { if (!cur_().viaYT) setPP(true); }; audio.onpause = () => { if (!cur_().viaYT) setPP(false); }; audio.onended = () => step(1);
+window.onYouTubeIframeAPIReady = () => {
+  yt = new YT.Player('yt', { width: '100%', height: '100%', playerVars: { playsinline: 1, rel: 0 }, events: {
+    onReady: () => { ytReady = true; if (pending) { yt.loadVideoById(pending); pending = null; } },
+    onStateChange: e => { if (!cur_().viaYT) return; setPP(e.data === 1); if (e.data === 0) step(1); },
+    onError: () => { const t = cur_(); if (t.viaYT) { t.yt = null; play(queue, idx); } } } });
+};
 // Preview links expire after a while, so a failed one is looked up again once
 audio.onerror = async () => {
-  const t = queue[idx]; if (!t || t.src !== 'dz' || t.retry) return; t.retry = true;
-  try { const d = await dz('/track/' + t.id); if (d.preview && queue[idx] === t) { t.preview = d.preview; audio.src = d.preview; audio.play(); } } catch {}
+  const t = queue[idx]; if (!t || t.retry) return; t.retry = true;
+  if (t.url && t.preview) { t.url = null; audio.src = t.preview; audio.play(); $('#srcbadge').textContent = '30s preview only'; return; }
+  if (t.src !== 'dz') return;
+  try { const d = await dz('/track/' + t.id); if (d.preview && queue[idx] === t) { t.url = null; t.preview = d.preview; audio.src = d.preview; audio.play(); $('#srcbadge').textContent = '30s preview only'; } } catch {}
 };
+let tk = 0;
 setInterval(() => {
   const t = queue[idx]; if (!t) return;
-  const cu = audio.currentTime, du = audio.duration;
+  const yo = t.viaYT && ytReady, cu = yo ? yt.getCurrentTime() : audio.currentTime, du = yo ? yt.getDuration() : audio.duration;
+  if (yo ? yt.getPlayerState() === 1 : !audio.paused) { stats.secs += .25; if (++tk % 40 === 0) store.set('vybe.stats', stats); }
   $('#cu').textContent = fmt(cu); $('#du').textContent = fmt(du);
   if (du) { const p = cu / du * 100; $('#pg').style.width = p + '%'; if (!$('#sk').matches(':active')) $('#sk').value = p; }
   tickLyrics(cu);
 }, 250);
-$('#sk').oninput = e => { if (queue[idx]) audio.currentTime = (audio.duration || 0) * e.target.value / 100; };
+$('#sk').oninput = e => {
+  const t = queue[idx]; if (!t) return;
+  if (t.viaYT && ytReady) yt.seekTo(yt.getDuration() * e.target.value / 100, true); else audio.currentTime = (audio.duration || 0) * e.target.value / 100;
+};
 
 // Lyrics: synced lines from LRCLIB (free), or pasted by you (plain or .lrc) and saved in this browser
 const clean = s => s.replace(/\(.*?\)|\[.*?\]/g, '').replace(/official|music video|video|audio|lyrics?|\bhd\b|4k/gi, '').replace(/\s+/g, ' ').trim();
@@ -143,7 +208,7 @@ function setLyrics(txt) {
 }
 // Previews are a 30s clip from the middle of a song, so tap the line you hear once to line them up
 function align(i) {
-  const t = queue[idx]; if (!t || t.src === 'local') return;
+  const t = queue[idx]; if (!t) return;
   offset = lines[i].t - audio.currentTime; store.set(offKey(t), offset); $('#hint').hidden = true;
 }
 function tickLyrics(cu) {
@@ -157,7 +222,7 @@ function tickLyrics(cu) {
 }
 async function loadLyrics(t) {
   const box = $('#lyr'), k = 'vybe.lyr.' + (t.id || t.title), saved = localStorage.getItem(k);
-  offset = t.src === 'local' ? 0 : store.get(offKey(t), null); lines = []; act_i = -1; $('#hint').hidden = true;
+  offset = (t.src === 'local' || t.url || t.yt) ? store.get(offKey(t), 0) : store.get(offKey(t), null); lines = []; act_i = -1; $('#hint').hidden = true;
   if (saved) { setLyrics(saved); return; }
   box.textContent = 'Finding lyrics…';
   const { a, s } = parse(t), live = () => queue[idx] === t;
@@ -206,7 +271,8 @@ async function playOnly(kind, id, img) { try { const l = await loadCol(kind, id,
 const mix = l => [...l].sort(() => Math.random() - .5);
 function addHist(t) {
   if (t.src === 'local') return;
-  hist = [{ src: 'dz', id: t.id, title: t.title, sub: t.sub, thumb: t.thumb, preview: t.preview, dur: t.dur }, ...hist.filter(x => x.id !== t.id)].slice(0, 12);
+  bump(t);
+  hist = [{ src: t.src, id: t.id, yt: t.yt, title: t.title, sub: t.sub, thumb: t.thumb, preview: t.preview, url: t.url, dur: t.dur }, ...hist.filter(x => x.id !== t.id)].slice(0, 12);
   store.set('vybe.hist', hist);
 }
 function renderRecent() {
@@ -235,6 +301,7 @@ const MIX = [['Afrobeats', 2], ['R&B', 165], ['Hip-Hop', 116], ['Pop', 132], ['D
 function showList(title, sub, img, list) {
   show('detail'); $('#dt').textContent = title; $('#ds').textContent = sub || ''; $('#dimg').src = img || ''; dcol = list; renderList($('#dlist'), list);
 }
+const loadHomeFull = () => jam('order=popularity_week&limit=12').then(d => d && renderList($('#auTop'), d.map(toJm)));
 async function loadHome() {
   renderRecent();
   const mxP = Promise.allSettled(MIX.map(([, id]) => dz(`/chart/${id}/tracks?limit=30`)));
@@ -248,6 +315,7 @@ async function loadHome() {
   });
   extra = [...(pl.value?.data || []).slice(0, 3).map(x => ({ thumb: x.picture_medium, title: x.title, go: () => playOnly('playlist', x.id) })),
            ...(al.value?.data || []).slice(0, 3).map(x => ({ thumb: x.cover_medium, title: x.title, go: () => playOnly('album', x.id, x.cover_big) }))];
+  loadHomeFull();
   renderRecent();
   (await mxP).forEach((r, i) => {
     if (!r.value) return;
@@ -259,13 +327,20 @@ $('#back').onclick = () => show(prev === 'detail' ? 'home' : prev);
 $('#dplay').onclick = () => { if (dcol.length) play(dcol, 0); };
 $('#dshuf').onclick = () => { if (dcol.length) play(mix(dcol), 0); };
 
-const sheet = on => $('#sheet').classList.toggle('on', on);
+const sheet = on => { $('#sheet').classList.toggle('on', on); $('#stage').classList.toggle('full', on); };
 const act = {
   pp: toggle, next: () => step(1), prev: () => step(-1), open: () => sheet(true), close: () => sheet(false),
   shuf: () => { shuf = !shuf; $$('[data-act=shuf]').forEach(b => b.classList.toggle('on', shuf)); },
   like: () => { const t = queue[idx]; if (t) toggleLike(t); }
 };
 $$('[data-act]').forEach(b => b.onclick = e => { e.stopPropagation(); act[b.dataset.act](); });
+$('#jbox').hidden = !!jkey;
+$('#jf').onsubmit = e => { e.preventDefault(); jkey = $('#jkey').value.trim(); store.set('vybe.jkey', jkey); $('#jbox').hidden = !!jkey; loadHomeFull(); };
+$('#kf').onsubmit = e => { e.preventDefault(); key = $('#key').value.trim(); store.set('vybe.key', key); $('#keybox').hidden = !!key; if ($('#q').value) search($('#q').value); };
+const nudge = d => { const t = queue[idx]; if (!t) return; offset = (offset ?? 0) + d; store.set(offKey(t), offset); $('#hint').hidden = true; };
+$('#nEarly').onclick = () => nudge(.5); $('#nLate').onclick = () => nudge(-.5);
+$('#lyrTog').onclick = e => { const b = document.querySelector('.lyrbox'); b.hidden = !b.hidden; e.currentTarget.classList.toggle('on', !b.hidden); };
+$('#vol').oninput = e => audio.volume = e.target.value;
 $('#sf').onsubmit = e => { e.preventDefault(); search($('#q').value); };
 const nav = $('nav'), tabs = [...$$('nav button')], order = tabs.map(b => b.dataset.v);
 function moveThumb(v) {
@@ -294,3 +369,24 @@ document.addEventListener('touchend', e => {
 }, { passive: true });
 $('#heroPlay').onclick = () => { if (trend.length) play(mix(trend), 0); };
 loadLocal(); loadHome(); moveThumb('home'); document.fonts?.ready.then(() => moveThumb(cur));
+
+// Settings: theme, listening stats, saved keys
+const stats = store.get('vybe.stats', { plays: 0, secs: 0, artists: {}, tracks: {} });
+const bump = t => { stats.plays++; stats.artists[t.sub] = (stats.artists[t.sub] || 0) + 1; const k = t.title + ' — ' + t.sub; stats.tracks[k] = (stats.tracks[k] || 0) + 1; store.set('vybe.stats', stats); };
+function renderSettings() {
+  const b = $('#stats'); b.replaceChildren();
+  b.append(el('p', '', `${stats.plays} plays · ${Math.round(stats.secs / 60)} min listened`));
+  [['Top artists', stats.artists], ['Top songs', stats.tracks]].forEach(([h, o]) => { b.append(el('small', 'muted', h)); Object.entries(o).sort((x, y) => y[1] - x[1]).slice(0, 5).forEach(([n, c]) => b.append(el('div', '', n + ' · ' + c))); });
+  $$('#themeSeg button').forEach(x => x.classList.toggle('on', x.dataset.t === store.get('vybe.theme', 'dark')));
+}
+function applyTheme() {
+  const m = store.get('vybe.theme', 'dark'), dark = m === 'dark' || (m === 'auto' && matchMedia('(prefers-color-scheme: dark)').matches);
+  document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+  $('meta[name=theme-color]').content = dark ? '#0a0d1a' : '#f3f4fb';
+}
+$$('#themeSeg button').forEach(b => b.onclick = () => { store.set('vybe.theme', b.dataset.t); applyTheme(); renderSettings(); });
+$('#gear').onclick = () => { sheet(false); show('settings'); };
+$('#rmKey').onclick = () => { key = ''; localStorage.removeItem('vybe.key'); };
+$('#rmJ').onclick = () => { jkey = ''; localStorage.removeItem('vybe.jkey'); };
+$('#rmStats').onclick = () => { hist = []; store.set('vybe.hist', []); localStorage.removeItem('vybe.stats'); Object.assign(stats, { plays: 0, secs: 0, artists: {}, tracks: {} }); renderSettings(); };
+applyTheme();

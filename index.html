@@ -4,16 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0a0d1a">
-<title>VYBE 5.6</title>
+<title>VYBE 5.9</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=5.6">
+<link rel="stylesheet" href="style.css?v=5.9">
 </head>
 <body>
 <div id="ambient"></div>
 <header class="glass">
   <h1>VYBE.</h1>
-  <form id="sf"><input id="q" type="search" placeholder="Search songs, artists, albums" aria-label="Search music"><button aria-label="Search">⌕</button></form>
+  <form id="sf"><input id="q" type="search" placeholder="Search songs, artists, albums" aria-label="Search music"><button aria-label="Search">⌕</button></form><button id="gear" class="ghost" aria-label="Settings">⚙︎</button>
 </header>
 <main>
   <section id="home" class="view on">
@@ -23,6 +23,7 @@
     <h3>Recommended playlists</h3><div id="pls" class="row"></div>
     <h3>More mixes</h3><div id="mixes" class="row"></div>
     <h3>Trending now</h3><div id="top"></div>
+    <h3>Free full songs</h3><div id="auTop"></div>
     <h3>Hot albums</h3><div id="albs" class="row"></div>
     <h3>Popular artists</h3><div id="chart" class="row"></div>
   </section>
@@ -33,8 +34,10 @@
     <div id="dlist"></div>
   </section>
   <section id="explore" class="view">
-      <p id="msg" class="muted"></p>
-    <div id="artistsHit" class="row"></div><div id="albumsHit" class="row"></div><div id="songs"></div>
+      <div id="keybox" class="glass box" hidden><b>YouTube search key</b><p>Paste a YouTube Data API v3 key to search songs with YouTube. Saved only in this browser.</p><form id="kf"><input id="key" placeholder="API key"><button>Save key</button></form></div>
+    <div id="jbox" class="glass box" hidden><b>Connect Jamendo for full songs</b><p>Get a free client ID at devportal.jamendo.com and paste it here. Saved only in this browser.</p><form id="jf"><input id="jkey" placeholder="Jamendo client ID"><button>Save</button></form></div>
+    <p id="msg" class="muted"></p>
+    <div id="artistsHit" class="row"></div><div id="albumsHit" class="row"></div><div id="songs"></div><h3 id="auH" hidden>Free full songs</h3><div id="auSongs"></div>
   </section>
   <section id="artists" class="view"><h3>Artists</h3><div id="artistGrid" class="grid"></div></section>
   <section id="library" class="view">
@@ -43,7 +46,14 @@
     <label class="btn">Add music<input id="file" type="file" accept="audio/*" multiple hidden></label>
     <div id="local"></div>
   </section>
+  <section id="settings" class="view"><h3>Settings</h3>
+    <div class="glass box"><b>Theme</b><div class="seg" id="themeSeg"><button data-t="dark">Dark</button><button data-t="light">Light</button><button data-t="auto">Auto</button></div></div>
+    <div class="glass box"><b>Listening stats</b><div id="stats"></div></div>
+    <div class="glass box"><b>Keys &amp; data</b><div class="seg"><button id="rmKey">Remove YouTube key</button><button id="rmJ">Remove Jamendo ID</button><button id="rmStats">Clear history &amp; stats</button></div></div>
+    <p class="muted">Coming next: Spotify login, equalizer, app icons. The equalizer can't change YouTube audio because the browser has no access to it.</p>
+  </section>
 </main>
+<div id="stage"><div id="yt"></div></div>
 <div id="bar" class="glass" data-act="open">
   <div id="pg"></div>
   <img id="art" alt=""><div class="meta"><b id="t">Choose a track</b><small id="s">Search to start listening</small></div>
@@ -53,16 +63,15 @@
 <div id="sheet">
   <div class="grab"><button data-act="close" aria-label="Close player">⌄</button></div>
   <div class="sbody">
-    <div id="cover"><img id="bigart" alt=""><button data-act="pp" class="cpp" aria-label="Play or pause">▶</button></div><h2 id="t2">Choose a track</h2><p id="s2" class="muted"></p>
-    <div class="seek"><span id="cu">0:00</span><input id="sk" type="range" min="0" max="100" value="0" aria-label="Seek"><span id="du">0:00</span></div>
-    <div class="ctl glass">
-      <button data-act="shuf" aria-label="Shuffle">⤨</button><button data-act="prev" aria-label="Previous">⏮</button>
-      <button data-act="pp" class="main" aria-label="Play or pause">▶</button>
-      <button data-act="next" aria-label="Next">⏭</button><button data-act="like" aria-label="Like">♡</button>
-    </div>
+    <div id="cover"><img id="bigart" alt=""><button data-act="pp" class="cpp" aria-label="Play or pause">▶</button></div><div class="trow"><div class="tt"><h2 id="t2">Choose a track</h2><p id="s2" class="muted"></p><small id="srcbadge"></small></div><button data-act="like" class="ic" aria-label="Like">♡</button></div>
+    <div class="seek2"><input id="sk" type="range" min="0" max="100" step="0.1" value="0" aria-label="Seek"><div><span id="cu">0:00</span><span id="du">0:00</span></div></div>
+    <div class="ctl2"><button data-act="prev" aria-label="Previous">⏮︎</button><button data-act="pp" class="main" aria-label="Play or pause">▶︎</button><button data-act="next" aria-label="Next">⏭︎</button></div>
+    <div class="vol"><span>🔈︎</span><input id="vol" type="range" min="0" max="1" step="0.01" value="1" aria-label="Volume"><span>🔊︎</span></div>
+    <div class="bot"><button data-act="shuf" aria-label="Shuffle">⤨</button><button id="lyrTog" class="on">❝ Lyrics</button></div>
     <div class="glass lyrbox">
       <div class="lh"><b>Lyrics</b><button id="addLyr">Add lyrics</button></div>
       <div id="lyr">Lyrics will appear here.</div>
+      <div class="nudge"><button id="nEarly">Earlier</button><span>Lyric timing</span><button id="nLate">Later</button></div>
       <small id="hint" class="muted" hidden>Tap the line you hear to sync lyrics with the preview.</small>
       <div id="lyrEd" hidden><textarea id="lyrIn" placeholder="Paste lyrics (plain or .lrc with timestamps)"></textarea><button id="lyrSave">Save lyrics</button></div>
     </div>
@@ -72,6 +81,7 @@
   <button data-v="home" class="on">Home</button><button data-v="explore">Explore</button>
   <button data-v="artists">Artists</button><button data-v="library">Library</button>
 </nav>
-<script src="app.js?v=5.6"></script>
+<script src="app.js?v=5.9"></script>
+<script src="https://www.youtube.com/iframe_api" async></script>
 </body>
 </html>
