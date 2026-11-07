@@ -4,10 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0a0d1a">
-<title>VYBE 5.5</title>
+<title>VYBE 5.6</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=5.5">
+<link rel="stylesheet" href="style.css?v=5.6">
 </head>
 <body>
 <div id="ambient"></div>
@@ -33,12 +33,7 @@
     <div id="dlist"></div>
   </section>
   <section id="explore" class="view">
-    <div id="keybox" class="glass box" hidden>
-      <b>Connect YouTube search</b>
-      <p>Paste a YouTube Data API v3 key. It is saved only in this browser.</p>
-      <form id="kf"><input id="key" placeholder="API key"><button>Save key</button></form>
-    </div>
-    <p id="msg" class="muted"></p>
+      <p id="msg" class="muted"></p>
     <div id="artistsHit" class="row"></div><div id="albumsHit" class="row"></div><div id="songs"></div>
   </section>
   <section id="artists" class="view"><h3>Artists</h3><div id="artistGrid" class="grid"></div></section>
@@ -49,7 +44,6 @@
     <div id="local"></div>
   </section>
 </main>
-<div id="stage"><div id="yt"></div></div>
 <div id="bar" class="glass" data-act="open">
   <div id="pg"></div>
   <img id="art" alt=""><div class="meta"><b id="t">Choose a track</b><small id="s">Search to start listening</small></div>
@@ -59,18 +53,18 @@
 <div id="sheet">
   <div class="grab"><button data-act="close" aria-label="Close player">⌄</button></div>
   <div class="sbody">
-    <img id="bigart" alt=""><h2 id="t2">Choose a track</h2><p id="s2" class="muted"></p>
+    <div id="cover"><img id="bigart" alt=""><button data-act="pp" class="cpp" aria-label="Play or pause">▶</button></div><h2 id="t2">Choose a track</h2><p id="s2" class="muted"></p>
     <div class="seek"><span id="cu">0:00</span><input id="sk" type="range" min="0" max="100" value="0" aria-label="Seek"><span id="du">0:00</span></div>
     <div class="ctl glass">
       <button data-act="shuf" aria-label="Shuffle">⤨</button><button data-act="prev" aria-label="Previous">⏮</button>
       <button data-act="pp" class="main" aria-label="Play or pause">▶</button>
       <button data-act="next" aria-label="Next">⏭</button><button data-act="like" aria-label="Like">♡</button>
     </div>
-    <button id="modeBtn" class="ghost mode"></button>
     <div class="glass lyrbox">
       <div class="lh"><b>Lyrics</b><button id="addLyr">Add lyrics</button></div>
-      <pre id="lyr">Lyrics will appear here.</pre>
-      <div id="lyrEd" hidden><textarea id="lyrIn" placeholder="Paste lyrics"></textarea><button id="lyrSave">Save lyrics</button></div>
+      <div id="lyr">Lyrics will appear here.</div>
+      <small id="hint" class="muted" hidden>Tap the line you hear to sync lyrics with the preview.</small>
+      <div id="lyrEd" hidden><textarea id="lyrIn" placeholder="Paste lyrics (plain or .lrc with timestamps)"></textarea><button id="lyrSave">Save lyrics</button></div>
     </div>
   </div>
 </div>
@@ -78,7 +72,6 @@
   <button data-v="home" class="on">Home</button><button data-v="explore">Explore</button>
   <button data-v="artists">Artists</button><button data-v="library">Library</button>
 </nav>
-<script src="app.js?v=5.5"></script>
-<script src="https://www.youtube.com/iframe_api" async></script>
+<script src="app.js?v=5.6"></script>
 </body>
 </html>
