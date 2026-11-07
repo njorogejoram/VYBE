@@ -211,12 +211,12 @@ function setLyrics(txt) {
   if (p.length > 3) {
     lines = p; p.forEach((l, i) => { const d = el('div', 'ln', l.x || '♪'); d.onclick = () => align(i); box.append(d); });
   } else box.append(el('pre', 'plain', txt));
-  $('#hint').hidden = !(lines.length && offset == null);
+  box.classList.toggle('nosync', !!lines.length && offset == null);
 }
 // Previews are a 30s clip from the middle of a song, so tap the line you hear once to line them up
 function align(i) {
   const t = queue[idx]; if (!t) return;
-  offset = lines[i].t - audio.currentTime; store.set(offKey(t), offset); $('#hint').hidden = true;
+  offset = lines[i].t - audio.currentTime; store.set(offKey(t), offset); $('#lyr').classList.remove('nosync');
 }
 function tickLyrics(cu) {
   if (!lines.length || offset == null) return;
@@ -230,7 +230,7 @@ function tickLyrics(cu) {
 async function loadLyrics(t) {
   const box = $('#lyr'), k = 'vybe.lyr.' + (t.id || t.title), saved = localStorage.getItem(k);
   lrcDur = 0; autoDone = false;
-  offset = (t.src === 'local' || t.url || t.yt) ? store.get(offKey(t), 0) : store.get(offKey(t), null); lines = []; act_i = -1; $('#hint').hidden = true;
+  offset = (t.src === 'local' || t.url || t.yt) ? store.get(offKey(t), 0) : store.get(offKey(t), null); lines = []; act_i = -1; $('#lyr').classList.remove('nosync');
   if (saved) { setLyrics(saved); return; }
   box.textContent = 'Finding lyrics…';
   const { a, s } = parse(t), live = () => queue[idx] === t;
@@ -285,7 +285,7 @@ function addHist(t) {
   store.set('vybe.hist', hist);
 }
 function renderRecent() {
-  const h = new Date().getHours(); $('#hello').textContent = h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';
+  const h = new Date().getHours(); const g = h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening', nm = store.get('vybe.profile', null)?.name; $('#hello').textContent = nm ? g + ', ' + nm : g;
   const items = hist.slice(0, 6).map((t, i) => ({ thumb: t.thumb, title: t.title, go: () => play(hist, i) }));
   $('#quick').replaceChildren();
   [...items, ...extra].slice(0, 6).forEach(x => {
@@ -405,7 +405,7 @@ loadLocal(); loadHome(); moveThumb('home'); document.fonts?.ready.then(() => mov
 const stats = store.get('vybe.stats', { plays: 0, secs: 0, artists: {}, tracks: {} }); stats.days ||= {};
 const day = () => new Date().toLocaleDateString('en-CA');
 const bump = t => { stats.plays++; stats.artists[t.sub] = (stats.artists[t.sub] || 0) + 1; const k = t.title + ' — ' + t.sub; stats.tracks[k] = (stats.tracks[k] || 0) + 1; store.set('vybe.stats', stats); };
-function renderSettings() { $$('#themeSeg button').forEach(x => x.classList.toggle('on', x.dataset.t === store.get('vybe.theme', 'dark'))); }
+function renderSettings() { $$('#themeSeg button').forEach(x => x.classList.toggle('on', x.dataset.t === store.get('vybe.theme', 'dark'))); renderAccount(); }
 function renderStats() {
   const b = $('#statsBody'); b.replaceChildren();
   const mins = s => Math.round(s / 60), d = new Date();
@@ -434,3 +434,36 @@ $('#rmStats').onclick = () => { hist = []; store.set('vybe.hist', []); localStor
 applyTheme();
 
 if (hist[0]) { queue = hist; idx = 0; paint(hist[0]); }
+
+// Login: a profile saved on this device, plus an optional Last.fm connection (Spotify/Deezer cannot connect right now)
+const prof = () => store.get('vybe.profile', null), lf = () => store.get('vybe.lf', null);
+function showLogin(on) {
+  $('#login').hidden = !on;
+  if (on) { $('#lname').value = prof()?.name || ''; $('#lfu').value = lf()?.user || ''; $('#lfk').value = lf()?.key || ''; $('#lfm').textContent = ''; }
+}
+function renderAccount() { $('#acct').textContent = (prof()?.name ? 'Signed in as ' + prof().name : 'Guest') + (lf() ? ' · Last.fm: ' + lf().user : ''); }
+function finishLogin(name) { store.set('vybe.profile', { name }); showLogin(false); renderRecent(); renderAccount(); loadLastfm(); }
+$('#lgo').onclick = () => finishLogin($('#lname').value.trim());
+$('#lguest').onclick = () => finishLogin('');
+$('#lfOpen').onclick = () => { $('#lff').hidden = !$('#lff').hidden; };
+$('#lff').onsubmit = e => {
+  e.preventDefault(); const user = $('#lfu').value.trim(), k = $('#lfk').value.trim(); if (!user || !k) return;
+  store.set('vybe.lf', { user, key: k }); $('#lfm').textContent = 'Saved. Tap Continue to see your top artists on Home.'; loadLastfm();
+};
+$('#acEdit').onclick = () => { sheet(false); showLogin(true); };
+$('#acOut').onclick = () => { localStorage.removeItem('vybe.profile'); localStorage.removeItem('vybe.lf'); renderAccount(); renderRecent(); loadLastfm(); showLogin(true); };
+async function artistCard(n, row) {
+  if (!apic[n]) { const d = (await dz('/search/artist?limit=1&q=' + enc(n))).data[0]; if (!d) return; apic[n] = { id: d.id, pic: d.picture_big }; store.set('vybe.apic', apic); }
+  const a = apic[n]; row.append(card(a.pic, n, 'Artist', () => openCol('artist', a.id, n, 'Top tracks', a.pic), () => playOnly('artist', a.id), true));
+}
+let lfTk = 0;
+async function loadLastfm() {
+  const c = lf(), tk = ++lfTk; $('#lfRow').replaceChildren(); $('#lfWrap').hidden = true; if (!c) return;
+  try {
+    const d = await (await fetch(`https://ws.audioscrobbler.com/2.0/?method=user.gettopartists&period=3month&limit=10&format=json&user=${enc(c.user)}&api_key=${enc(c.key)}`)).json();
+    const names = (d.topartists?.artist || []).map(a => a.name);
+    if (!names.length) return; $('#lfWrap').hidden = false;
+    for (const n of names) { try { if (tk !== lfTk) return; await artistCard(n, $('#lfRow')); } catch {} }
+  } catch {}
+}
+renderAccount(); loadLastfm(); showLogin(!prof());

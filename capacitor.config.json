@@ -1,0 +1,10 @@
+{
+  "appId": "com.vybe.music",
+  "appName": "VYBE",
+  "webDir": "www",
+  "server": {
+    "url": "https://njorogejoram.github.io/VYBE/",
+    "androidScheme": "https",
+    "allowNavigation": ["njorogejoram.github.io"]
+  }
+}

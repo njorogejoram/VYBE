@@ -4,10 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0a0d1a">
-<title>VYBE 6.3</title>
+<title>VYBE 6.4</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=6.3">
+<link rel="stylesheet" href="style.css?v=6.4">
 </head>
 <body>
 <div id="ambient"></div>
@@ -19,6 +19,7 @@
   <section id="home" class="view on">
     <div class="greet"><h2 id="hello">Good evening</h2><button id="heroPlay" class="ghost">▶ Trending</button></div>
     <div id="quick" class="quick"></div>
+    <div id="lfWrap" hidden><h3>From Last.fm</h3><div id="lfRow" class="row"></div></div>
     <div id="artWrap" hidden><h3>Artists you're playing</h3><div id="myArtists" class="row"></div></div>
     <h3>Recommended playlists</h3><div id="pls" class="row"></div>
     <h3>More mixes</h3><div id="mixes" class="row"></div>
@@ -48,10 +49,11 @@
   </section>
   <section id="mystats" class="view"><h3>Listening stats</h3><div id="statsBody"></div></section>
   <section id="settings" class="view"><h3>Settings</h3>
+    <div class="glass box"><b>Account</b><p class="muted" id="acct"></p><div class="seg"><button id="acEdit">Accounts &amp; connections</button><button id="acOut">Sign out</button></div></div>
     <div class="glass box"><b>Theme</b><div class="seg" id="themeSeg"><button data-t="dark">Dark</button><button data-t="light">Light</button><button data-t="auto">Auto</button></div></div>
         <div class="glass box"><b>Keys &amp; data</b><div class="seg"><button id="rmKey">Remove YouTube key</button><button id="rmJ">Remove Jamendo ID</button><button id="rmStats">Clear history &amp; stats</button></div></div>
-    <p class="muted" id="ver">VYBE 6.3</p>
-    <p class="muted">Coming next: Spotify login, equalizer, app icons. The equalizer can't change YouTube audio because the browser has no access to it.</p>
+    <p class="muted" id="ver">VYBE 6.4</p>
+    <p class="muted">Spotify and Deezer can't connect right now (see Accounts &amp; connections). The equalizer can't change YouTube audio because the browser has no access to it.</p>
   </section>
 </main>
 <div id="stage"><div id="yt"></div><button id="stageTap" aria-label="Open player"></button></div>
@@ -77,9 +79,25 @@
       </div>
       <div id="lyr">Lyrics will appear here.</div>
       <div id="lbar"><input id="lsk" type="range" min="0" max="100" step="0.1" value="0" aria-label="Seek"><div class="lrow"><button data-act="prev" class="bp" aria-label="Previous"><svg viewBox="0 0 24 24" aria-hidden="true" class="flip"><path d="M5 6.2v11.6a.9.9 0 0 0 1.4.75l8-5.8a.9.9 0 0 0 0-1.5l-8-5.8A.9.9 0 0 0 5 6.2z" fill="currentColor"/><rect x="16" y="5.5" width="2.8" height="13" rx="1.2" fill="currentColor"/></svg></button><button data-act="pp" class="bp" aria-label="Play or pause"><svg viewBox="0 0 24 24" aria-hidden="true" class="ip"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z" fill="currentColor"/></svg><svg viewBox="0 0 24 24" aria-hidden="true" class="ia"><rect x="6.5" y="5" width="4" height="14" rx="1.4" fill="currentColor"/><rect x="13.5" y="5" width="4" height="14" rx="1.4" fill="currentColor"/></svg></button><button data-act="next" class="bp" aria-label="Next"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 6.2v11.6a.9.9 0 0 0 1.4.75l8-5.8a.9.9 0 0 0 0-1.5l-8-5.8A.9.9 0 0 0 5 6.2z" fill="currentColor"/><rect x="16" y="5.5" width="2.8" height="13" rx="1.2" fill="currentColor"/></svg></button></div></div>
-      <small id="hint" class="muted" hidden>Tap the line you hear to sync lyrics with the preview.</small>
       <div id="lyrEd" hidden><textarea id="lyrIn" placeholder="Paste lyrics (plain or .lrc with timestamps)"></textarea><button id="lyrSave">Save lyrics</button></div>
     </div>
+  </div>
+</div>
+<div id="login" hidden>
+  <div class="lcard glass">
+    <h1>VYBE.</h1>
+    <p class="muted">Sign in to make VYBE yours.</p>
+    <input id="lname" placeholder="Your name" maxlength="24" autocomplete="nickname" aria-label="Your name">
+    <button id="lgo">Continue</button>
+    <button id="lguest" class="ghost">Continue as guest</button>
+    <div class="prov"><div><b>Spotify</b><small class="muted">Needs a Premium developer account, so it can't connect on a free plan.</small></div><button disabled>Unavailable</button></div>
+    <div class="prov"><div><b>Deezer</b><small class="muted">Deezer isn't accepting new app registrations right now.</small></div><button disabled>Unavailable</button></div>
+    <div class="prov"><div><b>Last.fm</b><small class="muted">Free. Shows your top artists, including Spotify plays you scrobble.</small></div><button id="lfOpen">Connect</button></div>
+    <form id="lff" hidden>
+      <input id="lfu" placeholder="Last.fm username" aria-label="Last.fm username" autocapitalize="off">
+      <input id="lfk" placeholder="Last.fm API key (free at last.fm/api)" aria-label="Last.fm API key" autocapitalize="off">
+      <button>Save connection</button><small id="lfm" class="muted"></small>
+    </form>
   </div>
 </div>
 <div id="qback"></div>
@@ -88,7 +106,7 @@
   <button data-v="home" class="on">Home</button><button data-v="explore">Explore</button>
   <button data-v="artists">Artists</button><button data-v="library">Library</button><button data-v="mystats">Stats</button>
 </nav>
-<script src="app.js?v=6.3"></script>
+<script src="app.js?v=6.4"></script>
 <script src="https://www.youtube.com/iframe_api" async></script>
 </body>
 </html>
