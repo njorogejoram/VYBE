@@ -1,25 +1,35 @@
-# VYBE 6.4
+# VYBE 6.5
 
-Music app: Deezer charts, playlists, albums and artists; full songs through YouTube's own player (your YouTube key), free full songs from Jamendo, 30s previews as a fallback, synced lyrics from LRCLIB.
+A music streaming web app and Android app built with plain HTML, CSS and JavaScript.
+Liquid-glass design, full-screen player with synced lyrics, your own playlists, new releases, community playlists and favourite artists.
 
-## What's new in 6.4
-- Cover art fills the whole top of the player, edge to edge, with the title laid over it.
-- Less empty space between the header and the first line in full-screen lyrics.
-- The "tap the line" lyrics hint is gone.
-- Login screen: your name (saved on this device), guest mode, and an optional Last.fm connection that shows your top artists on Home.
-- Settings > Account to edit, reconnect or sign out.
-- Android app: a GitHub Action builds an installable APK (see below).
+**Live site:** https://njorogejoram.github.io/VYBE/
+**Android app:** download the latest APK from the [Releases](../../releases) page.
 
-## Spotify and Deezer
-- Spotify only allows apps that are owned by a Premium account, and playback needs Premium. It can't connect on a free plan.
-- Deezer is not accepting new app registrations. Deezer charts and artwork still work without a login.
-- Last.fm is free: create an API key at last.fm/api, then connect it from the login screen or Settings. Link Spotify to Last.fm (in Last.fm settings) and your Spotify plays show up in VYBE.
+## Features
+- Home with a time-of-day greeting, recently played, favourite artists, new releases, recommended playlists, mixes and trending songs
+- Explore: new releases, music videos, browse by mood (happy, sad, romance and more) and community playlists
+- Search pop-up with recent searches; artist pages list the newest releases first
+- Full-screen player: edge-to-edge cover art, tap the cover to play or pause, synced lyrics, queue, volume and seek
+- Library: Liked songs folder, your own playlists (create, add, remove, save community playlists), and your own audio files
+- Settings: playback speed, sleep timer, autoplay, start screen, listening stats, favourite artists and account
+- Login page with a profile on your device and an optional Last.fm connection
+- Installable on Android through a GitHub Actions build
 
-## Publish the website (GitHub Pages)
-Upload index.html, style.css and app.js to the root of your VYBE repo.
+## Where the music comes from
+- Deezer: charts, covers, artists and 30-second previews
+- Openverse: free full songs (Creative Commons)
+- YouTube (optional, needs your own API key): full songs and music videos through YouTube's official player
+- LRCLIB: lyrics
+VYBE does not host any music. Spotify and Deezer sign-in are not available because both services currently block new apps like this one.
+
+## Publish the website
+Upload `index.html`, `style.css`, `app.js`, `manifest.webmanifest` and the `icon-*.png` files to the root of the repo and turn on GitHub Pages.
 
 ## Build the Android APK
-1. Upload everything in this folder to the repo, including package.json, capacitor.config.json and the .github/workflows/build-apk.yml file.
-2. Repo > Actions > "Build APK" > Run workflow (about 5 to 10 minutes).
-3. When it finishes, open the repo's Releases page, download VYBE-6.4.apk, open it on your phone and allow "install unknown apps" for your browser.
-The app opens your live site, so website updates reach the app without rebuilding. It needs internet. Change the address in capacitor.config.json if your site URL is different.
+1. Upload everything in this folder, including `package.json`, `capacitor.config.json` and `.github/workflows/build-apk.yml`.
+2. Repo > Actions > Build APK > Run workflow.
+3. When it turns green, open Releases and download `VYBE-6.5.apk`.
+
+## Copyright
+Copyright (c) 2026 Joram Ndungu Njoroge. All rights reserved. See `LICENSE`.

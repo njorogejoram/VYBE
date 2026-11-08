@@ -4,23 +4,33 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0a0d1a">
-<title>VYBE 6.4</title>
+<title>VYBE 6.5</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="author" content="Joram Ndungu Njoroge">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=6.4">
+<link rel="stylesheet" href="style.css?v=6.5">
 </head>
 <body>
 <div id="ambient"></div>
 <header class="glass">
   <h1>VYBE.</h1>
-  <form id="sf"><input id="q" type="search" placeholder="Search songs, artists, albums" aria-label="Search music"><button aria-label="Search">⌕</button></form><button id="gear" class="ghost" aria-label="Settings">⚙︎</button>
+  <div class="hb"><button id="sbtn" class="ghost" aria-label="Search">⌕</button><button id="gear" class="ghost" aria-label="Settings">⚙︎</button></div>
 </header>
+<div id="sov" hidden>
+  <form id="sf"><input id="q" type="search" placeholder="Search songs, artists, albums" aria-label="Search music" autocomplete="off"><button>Search</button><button type="button" id="sclose" class="ghost" aria-label="Close search">✕</button></form>
+  <div id="rec" class="chips"></div>
+</div>
 <main>
   <section id="home" class="view on">
     <div class="greet"><h2 id="hello">Good evening</h2><button id="heroPlay" class="ghost">▶ Trending</button></div>
     <div id="quick" class="quick"></div>
     <div id="lfWrap" hidden><h3>From Last.fm</h3><div id="lfRow" class="row"></div></div>
     <div id="artWrap" hidden><h3>Artists you're playing</h3><div id="myArtists" class="row"></div></div>
+    <div id="favWrap" hidden><h3>Your favourite artists</h3><div id="favRow" class="row"></div></div>
+    <h3>New releases</h3><div id="newRow" class="row"></div>
     <h3>Recommended playlists</h3><div id="pls" class="row"></div>
     <h3>More mixes</h3><div id="mixes" class="row"></div>
     <h3>Trending now</h3><div id="top"></div>
@@ -31,29 +41,42 @@
   <section id="detail" class="view">
     <button id="back" class="ghost">‹ Back</button>
     <div class="dhead"><img id="dimg" alt=""><div><h2 id="dt"></h2><p id="ds" class="muted"></p>
-      <div class="dbtn"><button id="dplay">Play</button><button id="dshuf" class="ghost">Shuffle</button></div></div></div>
+      <div class="dbtn"><button id="dplay">Play</button><button id="dshuf" class="ghost">Shuffle</button><button id="dfav" class="ghost" hidden>♡ Follow</button><button id="dsave" class="ghost">Save</button><button id="ddel" class="ghost" hidden>Delete</button></div></div></div>
     <div id="dlist"></div>
   </section>
   <section id="explore" class="view">
-      <div id="keybox" class="glass box" hidden><b>YouTube search key</b><p>Paste a YouTube Data API v3 key to search songs with YouTube. Saved only in this browser.</p><form id="kf"><input id="key" placeholder="API key"><button>Save key</button></form></div>
-    <div id="jbox" class="glass box" hidden><b>Connect Jamendo for full songs</b><p>Get a free client ID at devportal.jamendo.com and paste it here. Saved only in this browser.</p><form id="jf"><input id="jkey" placeholder="Jamendo client ID"><button>Save</button></form></div>
+    <div id="moodBox"><h3>New releases</h3><div id="newRow2" class="row"></div>
+      <h3>Music videos</h3><div id="mvRow" class="row"></div>
+      <h3>Browse by mood</h3><div id="moods" class="chips"></div>
+      <h3 id="moodH">Suggested community playlists</h3><div id="moodRes" class="row"></div></div>
     <p id="msg" class="muted"></p>
-    <div id="artistsHit" class="row"></div><div id="albumsHit" class="row"></div><div id="songs"></div><h3 id="auH" hidden>Free full songs</h3><div id="auSongs"></div>
+    <div id="artistsHit" class="row"></div><div id="albumsHit" class="row"></div><div id="songs"></div><h3 id="auH" hidden>Free &amp; open music</h3><div id="auSongs"></div>
   </section>
   <section id="artists" class="view"><h3>Artists</h3><div id="artistGrid" class="grid"></div></section>
   <section id="library" class="view">
-    <h3>Liked songs</h3><div id="liked"></div>
+    <h3>Your library</h3><div id="folders" class="row"></div>
     <h3>On this device</h3>
     <label class="btn">Add music<input id="file" type="file" accept="audio/*" multiple hidden></label>
     <div id="local"></div>
   </section>
-  <section id="mystats" class="view"><h3>Listening stats</h3><div id="statsBody"></div></section>
+  <section id="mystats" class="view"><button id="statsBack" class="ghost">‹ Settings</button><h3>Listening stats</h3><div id="statsBody"></div></section>
   <section id="settings" class="view"><h3>Settings</h3>
     <div class="glass box"><b>Account</b><p class="muted" id="acct"></p><div class="seg"><button id="acEdit">Accounts &amp; connections</button><button id="acOut">Sign out</button></div></div>
-    <div class="glass box"><b>Theme</b><div class="seg" id="themeSeg"><button data-t="dark">Dark</button><button data-t="light">Light</button><button data-t="auto">Auto</button></div></div>
-        <div class="glass box"><b>Keys &amp; data</b><div class="seg"><button id="rmKey">Remove YouTube key</button><button id="rmJ">Remove Jamendo ID</button><button id="rmStats">Clear history &amp; stats</button></div></div>
-    <p class="muted" id="ver">VYBE 6.4</p>
-    <p class="muted">Spotify and Deezer can't connect right now (see Accounts &amp; connections). The equalizer can't change YouTube audio because the browser has no access to it.</p>
+    <div class="glass box"><b>Full-song source</b>
+      <div class="seg" id="srcSeg"><button data-s="free">Free library</button><button data-s="yt">YouTube</button></div>
+      <p class="muted" id="srcNote"></p>
+      <form id="kf" class="kform"><input id="key" placeholder="YouTube API key (only for YouTube)" aria-label="YouTube API key" autocapitalize="off"><button>Save key</button></form></div>
+    <div class="glass box"><b>Playback</b>
+      <p class="muted">Speed</p><div class="seg" id="spdSeg"><button data-v="0.75">0.75×</button><button data-v="1">1×</button><button data-v="1.25">1.25×</button><button data-v="1.5">1.5×</button></div>
+      <p class="muted">Sleep timer <span id="slpNote"></span></p><div class="seg" id="slpSeg"><button data-v="0">Off</button><button data-v="15">15 min</button><button data-v="30">30 min</button><button data-v="60">60 min</button></div>
+      <p class="muted">Keep playing similar songs when the queue ends</p><div class="seg" id="autoSeg"><button data-v="1">On</button><button data-v="0">Off</button></div>
+      <p class="muted">Start screen</p><div class="seg" id="startSeg"><button data-v="home">Home</button><button data-v="explore">Explore</button><button data-v="library">Library</button></div></div>
+    <div class="glass box"><b>Favourite artists</b><p class="muted">Pick the artists you love and they show first on Home.</p><div class="seg"><button id="favOpen">Choose artists</button></div></div>
+    <div class="glass box"><b>Listening stats</b><p class="muted">Minutes listened, top artists and songs.</p><div class="seg"><button id="openStats">Open stats</button></div></div>
+    <div class="glass box"><b>Data</b><div class="seg"><button id="rmKey">Remove YouTube key</button><button id="rmStats">Clear history &amp; stats</button></div></div>
+    <div class="glass box"><b>About VYBE 6.5</b>
+      <p class="muted">&copy; 2026 Joram Ndungu Njoroge. All rights reserved.</p>
+      <p class="muted">VYBE does not host any music. Covers and charts: Deezer. Lyrics: LRCLIB. Free full songs: Openverse (Creative Commons, credit to each artist).</p></div>
   </section>
 </main>
 <div id="stage"><div id="yt"></div><button id="stageTap" aria-label="Open player"></button></div>
@@ -70,7 +93,7 @@
     <div class="seek2"><input id="sk" type="range" min="0" max="100" step="0.1" value="0" aria-label="Seek"><div><span id="cu">0:00</span><span id="du">0:00</span></div></div>
     <div class="ctl2"><button data-act="prev" aria-label="Previous"><svg viewBox="0 0 24 24" aria-hidden="true" class="flip"><path d="M5 6.2v11.6a.9.9 0 0 0 1.4.75l8-5.8a.9.9 0 0 0 0-1.5l-8-5.8A.9.9 0 0 0 5 6.2z" fill="currentColor"/><rect x="16" y="5.5" width="2.8" height="13" rx="1.2" fill="currentColor"/></svg></button><button data-act="pp" class="main" aria-label="Play or pause"><svg viewBox="0 0 24 24" aria-hidden="true" class="ip"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z" fill="currentColor"/></svg><svg viewBox="0 0 24 24" aria-hidden="true" class="ia"><rect x="6.5" y="5" width="4" height="14" rx="1.4" fill="currentColor"/><rect x="13.5" y="5" width="4" height="14" rx="1.4" fill="currentColor"/></svg></button><button data-act="next" aria-label="Next"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 6.2v11.6a.9.9 0 0 0 1.4.75l8-5.8a.9.9 0 0 0 0-1.5l-8-5.8A.9.9 0 0 0 5 6.2z" fill="currentColor"/><rect x="16" y="5.5" width="2.8" height="13" rx="1.2" fill="currentColor"/></svg></button></div>
     <div class="vol"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5v5h3.5l4.5 4v-13l-4.5 4z" fill="currentColor"/></svg><input id="vol" type="range" min="0" max="1" step="0.01" value="1" aria-label="Volume"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5v5h3.5l4.5 4v-13l-4.5 4z" fill="currentColor"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-    <div class="bot"><button data-act="shuf" aria-label="Shuffle"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h3.5c2 0 3.2 1 4.3 2.6l2.4 3.8c1.1 1.6 2.3 2.6 4.3 2.6H21M3 17h3.5c2 0 3.2-1 4.3-2.6M13.2 10.6C14.3 9 15.5 8 17.5 8H21M18.5 5.5 21 8l-2.5 2.5M18.5 13.5 21 16l-2.5 2.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button id="lyrTog" class="on" aria-label="Lyrics"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5h14a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1h-7l-4.5 3.5V16H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 9h8M8 12h5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button id="qTog" aria-label="Queue"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6.5h12M4 12h12M4 17.5h6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M16.5 14.5v6l5-3z" fill="currentColor"/></svg></button></div>
+    <div class="bot"><button data-act="shuf" aria-label="Shuffle"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h3.5c2 0 3.2 1 4.3 2.6l2.4 3.8c1.1 1.6 2.3 2.6 4.3 2.6H21M3 17h3.5c2 0 3.2-1 4.3-2.6M13.2 10.6C14.3 9 15.5 8 17.5 8H21M18.5 5.5 21 8l-2.5 2.5M18.5 13.5 21 16l-2.5 2.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button id="lyrTog" class="on" aria-label="Lyrics"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5h14a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1h-7l-4.5 3.5V16H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 9h8M8 12h5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button id="vidBtn" aria-label="Watch music video"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="12" rx="3" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M10.5 9.5v5l4-2.5z" fill="currentColor"/></svg></button><button id="qTog" aria-label="Queue"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6.5h12M4 12h12M4 17.5h6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M16.5 14.5v6l5-3z" fill="currentColor"/></svg></button></div>
     
     <div class="glass lyrbox">
       <div class="lh">
@@ -82,6 +105,10 @@
       <div id="lyrEd" hidden><textarea id="lyrIn" placeholder="Paste lyrics (plain or .lrc with timestamps)"></textarea><button id="lyrSave">Save lyrics</button></div>
     </div>
   </div>
+</div>
+<div id="fpick" hidden>
+  <h2>Pick your favourite artists</h2><p class="muted">Tap the ones you love. You can change this later in Settings.</p>
+  <div id="fgrid"></div><button id="fdone">Done</button>
 </div>
 <div id="login" hidden>
   <div class="lcard glass">
@@ -102,11 +129,13 @@
 </div>
 <div id="qback"></div>
 <div id="qsheet"><div class="qgrab"></div><div class="qhead"><h3>Up next</h3><button id="qclear" class="ghost">Clear</button></div><div class="qlabel">Now playing</div><div id="qnow"></div><div class="qlabel">Next</div><div id="qlist"></div></div>
+<div id="psheet"><div class="qgrab"></div><div class="qhead"><h3 id="pst">Add to playlist</h3></div><div id="plist"></div>
+  <form id="npf"><input id="npn" placeholder="New playlist name" maxlength="40" aria-label="New playlist name"><button>Create</button></form></div>
+<div id="toast" role="status"></div>
 <nav class="glass"><i id="thumb"></i>
   <button data-v="home" class="on">Home</button><button data-v="explore">Explore</button>
-  <button data-v="artists">Artists</button><button data-v="library">Library</button><button data-v="mystats">Stats</button>
+  <button data-v="artists">Artists</button><button data-v="library">Library</button>
 </nav>
-<script src="app.js?v=6.4"></script>
-<script src="https://www.youtube.com/iframe_api" async></script>
+<script src="app.js?v=6.5"></script>
 </body>
 </html>

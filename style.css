@@ -1,3 +1,4 @@
+/* VYBE 6.5 - (c) 2026 Joram Ndungu Njoroge. All rights reserved. */
 :root{--bg:#0a0d1a;--panel:#1f2438;--text:#f4f4fb;--dim:#a9aec6;--pink:#4f7cff;--vio:#8b5cf6;--cy:#a8c0ff}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 Sora,system-ui,sans-serif;padding-bottom:240px;overflow-x:hidden}
@@ -230,3 +231,37 @@ nav button{padding:0 2px;min-width:0;font-size:12.5px}
 .prov button{padding:8px 12px;font-size:13px}.prov button[disabled]{opacity:.45;background:rgba(255,255,255,.14)}
 #lff{display:flex;flex-direction:column;gap:8px}
 #sheet .lyrbox.lyrfull{background:rgba(10,13,26,.6);backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px)}
+
+/* 6.5 */
+.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;scrollbar-width:none}.chips::-webkit-scrollbar{display:none}
+.chips button{flex:none;white-space:nowrap;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);font-size:13px;padding:8px 14px}
+.chips button.on{background:linear-gradient(135deg,var(--pink),var(--vio));border-color:transparent}
+#moodBox[hidden]{display:none}
+#psheet{position:fixed;left:0;right:0;bottom:0;z-index:36;display:flex;flex-direction:column;max-height:70vh;border-radius:26px 26px 0 0;background:rgba(18,20,34,.94);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);border-top:1px solid rgba(255,255,255,.18);transform:translateY(105%);transition:transform .35s;padding:8px 16px calc(env(safe-area-inset-bottom,0px) + 16px)}
+#psheet.on{transform:none}
+#plist{overflow-y:auto;max-height:34vh}
+.plrow{display:block;width:100%;text-align:left;background:none;border-radius:0;padding:13px 6px;font-weight:600;color:var(--text);border-bottom:1px solid rgba(255,255,255,.08)}
+#npf{display:flex;gap:8px;margin-top:12px}
+#npf input,.kform input{flex:1;min-width:0;padding:11px 14px;border-radius:14px;border:1px solid rgba(255,255,255,.2);background:rgba(0,0,0,.28);color:var(--text);font:inherit}
+.kform{display:flex;gap:8px;margin-top:10px}
+#toast{position:fixed;left:50%;bottom:150px;transform:translate(-50%,20px);z-index:120;padding:10px 16px;border-radius:16px;background:rgba(20,22,40,.94);border:1px solid rgba(255,255,255,.2);opacity:0;pointer-events:none;transition:all .3s;font-size:13px;max-width:88vw;text-align:center}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+.track img{cursor:pointer}
+.dbtn{flex-wrap:wrap}
+
+/* 6.5b */
+header{justify-content:space-between}
+.hb{display:flex;gap:8px}.hb .ghost{padding:9px 14px;font-size:18px}
+#sov{position:fixed;inset:0;z-index:60;display:flex;flex-direction:column;gap:10px;padding:calc(env(safe-area-inset-top,0px) + 10px) 12px 12px;background:rgba(6,8,18,.62);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+#sov[hidden]{display:none}
+#sov #sf{display:flex;gap:8px;flex:none;min-width:0}
+#sov #sf input{flex:1;min-width:0}
+#rec{padding:0 2px}
+.fa{background:none;color:var(--text);padding:6px;border-radius:16px;text-align:center;font-size:12px;font-weight:600;border:2px solid transparent}
+.fa img{width:100%;aspect-ratio:1;border-radius:50%;object-fit:cover;display:block;margin-bottom:6px;background:#ffffff18}
+.fa.on{border-color:var(--vio);background:rgba(139,92,246,.2)}
+#fpick{position:fixed;inset:0;z-index:90;display:flex;flex-direction:column;padding:calc(env(safe-area-inset-top,0px) + 16px) 16px 16px;background:rgba(10,13,26,.97)}
+#fpick[hidden]{display:none}#fpick h2{margin:0 0 4px}#fpick p{margin:0}
+#fgrid{flex:1;overflow-y:auto;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:12px 0;align-content:start}
+.vid{width:230px}.vid .cv{aspect-ratio:16/9;border-radius:14px}
+#mystats>#statsBack{margin-bottom:8px}

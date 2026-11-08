@@ -1,0 +1,13 @@
+{
+  "name": "VYBE",
+  "short_name": "VYBE",
+  "description": "Music app with new releases, community playlists, lyrics and your own playlists.",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#0a0d1a",
+  "theme_color": "#0a0d1a",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}
