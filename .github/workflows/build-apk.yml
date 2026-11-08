@@ -26,21 +26,27 @@ jobs:
         run: mkdir -p www && cp index.html style.css app.js www/
       - name: Create Android project
         run: npx cap add android
+      - name: App icon
+        continue-on-error: true
+        run: |
+          mkdir -p assets
+          cp icon-only.png icon-foreground.png icon-background.png assets/
+          npx --yes @capacitor/assets@3 generate --android
       - name: Sync
         run: npx cap sync android
       - name: Build debug APK
         working-directory: android
         run: ./gradlew assembleDebug
       - name: Name the APK
-        run: cp android/app/build/outputs/apk/debug/app-debug.apk VYBE-6.4.apk
+        run: cp android/app/build/outputs/apk/debug/app-debug.apk VYBE-6.5.apk
       - uses: actions/upload-artifact@v4
         with:
           name: VYBE-apk
-          path: VYBE-6.4.apk
+          path: VYBE-6.5.apk
       - name: Publish release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v6.4
-          name: VYBE 6.4
-          files: VYBE-6.4.apk
+          tag_name: v6.5
+          name: VYBE 6.5
+          files: VYBE-6.5.apk
           make_latest: true
